@@ -1,0 +1,63 @@
+<!-- PERBAIKAN 3: Menghapus ".Excel" dari x:Class agar sesuai dengan namespace utama -->
+<sap:ActivityDesigner x:Class="OpenRPA.Activities.ReadRangeWorkbookDesigner"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sa="clr-namespace:System.Activities;assembly=System.Activities"
+    xmlns:sap="clr-namespace:System.Activities.Presentation;assembly=System.Activities.Presentation"
+    xmlns:sapv="clr-namespace:System.Activities.Presentation.View;assembly=System.Activities.Presentation"
+    xmlns:sac="clr-namespace:System.Activities.Presentation.Converters;assembly=System.Activities.Presentation"
+    xmlns:s="clr-namespace:System;assembly=mscorlib">
+
+    <sap:ActivityDesigner.Resources>
+        <sac:ArgumentToExpressionConverter x:Key="ArgumentToExpressionConverter" />
+    </sap:ActivityDesigner.Resources>
+
+    <Grid>
+        <StackPanel Margin="5" MinWidth="280">
+            <TextBlock Margin="2,0,0,2">
+                <Run Text="Workbook Path" FontWeight="SemiBold" Foreground="#FF444444" />
+                <Run Text=" *" Foreground="Red" />
+            </TextBlock>
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <sapv:ExpressionTextBox
+                    Expression="{Binding Path=ModelItem.WorkbookPath, Mode=TwoWay, Converter={StaticResource ArgumentToExpressionConverter}, ConverterParameter=In}"
+                    ExpressionType="{x:Type s:String}"
+                    OwnerActivity="{Binding Path=ModelItem}"
+                    HintText="&quot;C:\path\to\file.xlsx&quot;"
+                    MaxLines="1" MinLines="1" Grid.Column="0" />
+                <Button Grid.Column="1" Click="BrowseFile_Click" Width="30" Margin="4,0,0,0" ToolTip="Browse File">
+                    <TextBlock Text="..." FontWeight="Bold"/>
+                </Button>
+            </Grid>
+
+            <TextBlock Margin="2,0,0,2">
+                <Run Text="Sheet Name" FontWeight="SemiBold" Foreground="#FF444444" />
+            </TextBlock>
+            <sapv:ExpressionTextBox
+                Expression="{Binding Path=ModelItem.SheetName, Mode=TwoWay, Converter={StaticResource ArgumentToExpressionConverter}, ConverterParameter=In}"
+                ExpressionType="{x:Type s:String}"
+                OwnerActivity="{Binding Path=ModelItem}"
+                HintText="&quot;Sheet1&quot;"
+                MaxLines="1" MinLines="1" Margin="0,0,0,8" />
+
+            <TextBlock Margin="2,0,0,2">
+                <Run Text="Range" FontWeight="SemiBold" Foreground="#FF444444" />
+                <Run Text=" (Kosong = Semua)" FontSize="10" Foreground="Gray"/>
+            </TextBlock>
+            <sapv:ExpressionTextBox
+                Expression="{Binding Path=ModelItem.Range, Mode=TwoWay, Converter={StaticResource ArgumentToExpressionConverter}, ConverterParameter=In}"
+                ExpressionType="{x:Type s:String}"
+                OwnerActivity="{Binding Path=ModelItem}"
+                HintText="&quot;A1:D10&quot; atau &quot;&quot;"
+                MaxLines="1" MinLines="1" Margin="0,0,0,8" />
+
+            <Border BorderBrush="#FFE5E5E5" BorderThickness="1" Background="#FFF9F9F9" Padding="6" CornerRadius="2">
+                <CheckBox IsChecked="{Binding Path=ModelItem.AddHeaders}" Content="Add Headers" Foreground="#FF444444"/>
+            </Border>
+        </StackPanel>
+    </Grid>
+</sap:ActivityDesigner>

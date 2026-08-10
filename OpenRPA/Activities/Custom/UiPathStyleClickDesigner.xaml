@@ -1,0 +1,132 @@
+<sap:ActivityDesigner
+    x:Class="OpenRPA.Activities.Custom.Design.UiPathStyleClickDesigner"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sap="clr-namespace:System.Activities.Presentation;assembly=System.Activities.Presentation"
+    xmlns:sapv="clr-namespace:System.Activities.Presentation.View;assembly=System.Activities.Presentation"
+    xmlns:sac="clr-namespace:System.Activities.Presentation.Converters;assembly=System.Activities.Presentation"
+    xmlns:swc="clr-namespace:System.Windows.Controls;assembly=PresentationFramework"
+    xmlns:s="clr-namespace:System;assembly=mscorlib"
+    Loaded="ActivityDesigner_Loaded"
+    >
+
+    <!-- Icon custom dihapus permanen (lihat catatan batch IOException sebelumnya) -->
+
+    <sap:ActivityDesigner.Resources>
+
+        <sac:ArgumentToExpressionConverter x:Key="ArgumentToExpressionConverter" />
+        <!-- BooleanToVisibilityConverter: kelas STANDAR WPF (PresentationFramework),
+             bukan buatan OpenRPA — aman dipakai, beda dari kasus attribute
+             fiktif di batch-batch sebelumnya. -->
+        <swc:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+        <!-- ===================== COLLAPSED VIEW ===================== -->
+        <DataTemplate x:Key="Collapsed">
+            <StackPanel Margin="4" Orientation="Horizontal">
+                <Image Source="{Binding Image}" MaxHeight="50" Margin="0,0,6,0" />
+                <TextBlock Text="⚓" FontSize="14" VerticalAlignment="Center"
+                           Visibility="{Binding HasAnchor, Converter={StaticResource BoolToVisibilityConverter}}"
+                           ToolTip="Pakai anchor" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- ===================== EXPANDED VIEW ===================== -->
+        <!-- Layout mendekati UiPath Click: tombol Indicate besar di atas,
+             lalu Anchor sebagai section terpisah (opsional, sedikit
+             ditonjolkan lebih kecil/secondary), badge ringkasan opsi di bawah. -->
+        <DataTemplate x:Key="Expanded">
+            <StackPanel Margin="10" MinWidth="260">
+
+                <!-- ===== TARGET: dua tombol Indicate (Desktop/Web) ===== -->
+                <TextBlock Text="TARGET" FontSize="10" FontWeight="Bold" Foreground="#FFAAAAAA" Margin="0,0,0,4" />
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="4" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="🖥 Desktop" Click="Open_Selector_Desktop"
+                            Padding="8,7" Background="#FF2F80ED" Foreground="White"
+                            BorderThickness="0" FontWeight="SemiBold" />
+                    <Button Grid.Column="2" Content="🌐 Web" Click="Open_Selector_Web"
+                            Padding="8,7" Background="#FF2F80ED" Foreground="White"
+                            BorderThickness="0" FontWeight="SemiBold" />
+                </Grid>
+                <TextBlock Text="Klik salah satu sesuai jenis elemen yang mau di-klik" FontSize="9"
+                           Foreground="#FF999999" Margin="0,0,0,8" TextWrapping="Wrap" />
+
+                <Image Source="{Binding Image}" MaxHeight="70" Margin="0,0,0,4" HorizontalAlignment="Left" />
+
+                <sapv:ExpressionTextBox
+                    Expression="{Binding Path=ModelItem.Selector, Mode=TwoWay, Converter={StaticResource ArgumentToExpressionConverter}, ConverterParameter=In}"
+                    ExpressionType="{x:Type s:String}"
+                    OwnerActivity="{Binding Path=ModelItem}"
+                    HintText="(kosong = pakai Element)"
+                    MaxLines="1" MinLines="1" Margin="0,0,0,10" />
+
+                <!-- ===== ANCHOR: opsional, section lebih kecil/secondary ===== -->
+                <Border BorderBrush="#FFE0E0E0" BorderThickness="0,1,0,0" Margin="0,0,0,8" Padding="0,8,0,0">
+                    <StackPanel>
+                        <DockPanel LastChildFill="True" Margin="0,0,0,4">
+                            <TextBlock Text="ANCHOR (opsional — untuk tombol yang posisinya berubah-ubah)"
+                                       DockPanel.Dock="Left" FontSize="10" FontWeight="Bold" Foreground="#FFAAAAAA"
+                                       TextWrapping="Wrap" />
+                        </DockPanel>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="🖥 Desktop" Click="Open_Anchor_Desktop"
+                                    Padding="6,5" FontSize="11" />
+                            <Button Grid.Column="2" Content="🌐 Web" Click="Open_Anchor_Web"
+                                    Padding="6,5" FontSize="11" />
+                            <Button Grid.Column="4" Content="✕" Click="Clear_Anchor_Click"
+                                    Padding="6,5" FontSize="11" ToolTip="Hapus anchor"
+                                    Visibility="{Binding HasAnchor, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </Grid>
+                        <sapv:ExpressionTextBox
+                            Expression="{Binding Path=ModelItem.AnchorSelector, Mode=TwoWay, Converter={StaticResource ArgumentToExpressionConverter}, ConverterParameter=In}"
+                            ExpressionType="{x:Type s:String}"
+                            OwnerActivity="{Binding Path=ModelItem}"
+                            HintText="(kosong = tidak pakai anchor)"
+                            MaxLines="1" MinLines="1" />
+                    </StackPanel>
+                </Border>
+
+                <Button Click="Highlight_Click" Margin="0,0,0,8"
+                        HorizontalAlignment="Stretch" Padding="6,4">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Image Source="{Binding HighlightImage}" Height="16" Width="16" Margin="0,0,6,0" />
+                        <TextBlock Text="Highlight" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Ringkasan opsi, mirip badge kecil di bawah kartu UiPath -->
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Path=ModelItem.ClickType, StringFormat='Type: {0}'}"
+                               FontSize="10" Foreground="#FF888888" Margin="0,0,10,0" />
+                    <TextBlock Text="{Binding Path=ModelItem.Button.Expression, StringFormat='Button: {0}'}"
+                               FontSize="10" Foreground="#FF888888" Margin="0,0,10,0" />
+                    <TextBlock Text="{Binding HasAnchor, StringFormat='Anchor: {0}'}"
+                               FontSize="10" Foreground="#FF888888" />
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+
+        <Style x:Key="ExpandOrCollapsedStyle" TargetType="{x:Type ContentPresenter}">
+            <Setter Property="ContentTemplate" Value="{DynamicResource Expanded}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=ShowExpanded}" Value="false">
+                    <Setter Property="ContentTemplate" Value="{DynamicResource Collapsed}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </sap:ActivityDesigner.Resources>
+    <Grid>
+        <ContentPresenter Style="{DynamicResource ExpandOrCollapsedStyle}" Content="{Binding}" />
+    </Grid>
+</sap:ActivityDesigner>

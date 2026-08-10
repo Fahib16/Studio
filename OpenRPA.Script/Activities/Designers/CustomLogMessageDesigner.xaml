@@ -1,0 +1,181 @@
+﻿<sap:ActivityDesigner x:Class="OpenRPA.Script.Activities.Designers.CustomLogMessageDesigner"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sap="clr-namespace:System.Activities.Presentation;assembly=System.Activities.Presentation"
+    xmlns:sapv="clr-namespace:System.Activities.Presentation.View;assembly=System.Activities.Presentation"
+    xmlns:sapc="clr-namespace:System.Activities.Presentation.Converters;assembly=System.Activities.Presentation">
+
+    <sap:ActivityDesigner.Resources>
+        <!-- Converter agar TextBox / ComboBox bisa langsung terikat (bind) dengan InArgument C# -->
+        <sapc:ArgumentToExpressionConverter x:Key="ArgumentToExpressionConverter" />
+
+        <!-- ===================== STYLE DASAR ===================== -->
+
+        <!-- Style untuk label field ("Log Level", "Message") -->
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#3B3B3B"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+
+        <!-- Style bingkai untuk setiap field (border abu-abu tipis, rounded) -->
+        <Style x:Key="FieldBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F7F7F7"/>
+            <Setter Property="BorderBrush" Value="#D8D8D8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="MinHeight" Value="26"/>
+        </Style>
+
+        <!-- Tombol bulat kecil (untuk menu titik-tiga, chevron, dsb) -->
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#E4E4E4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </sap:ActivityDesigner.Resources>
+
+    <!-- ===================== KARTU AKTIVITAS ===================== -->
+    <Border x:Name="RootCard"
+            Background="White"
+            BorderBrush="#2E7CE4"
+            BorderThickness="2"
+            CornerRadius="6"
+            MinWidth="300">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ============ HEADER (abu-abu, judul + ikon aksi) ============ -->
+            <Border Grid.Row="0" Background="#F2F2F2" CornerRadius="4,4,0,0" Padding="8,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Ikon pensil / edit -->
+                    <Border Grid.Column="0" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center">
+                        <Path Data="M2,14 L2,16 L4,16 L13,7 L11,5 Z M14,4 L12,2 L10.5,3.5 L12.5,5.5 Z"
+                              Stretch="Uniform" Fill="#2E7CE4"/>
+                    </Border>
+
+                    <!-- Judul Activity -->
+                    <TextBlock Grid.Column="1" Text="Log Message" FontWeight="Bold" FontSize="13"
+                               Foreground="#1F1F1F" VerticalAlignment="Center"/>
+
+                    <!-- Menu titik tiga (kebab menu) -->
+                    <Button Grid.Column="2" Style="{StaticResource IconButtonStyle}" Width="20" Height="20"
+                            ToolTip="Opsi lainnya">
+                        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                            <Ellipse Width="3" Height="3" Fill="#5F5F5F" Margin="0,1"/>
+                            <Ellipse Width="3" Height="3" Fill="#5F5F5F" Margin="0,1"/>
+                            <Ellipse Width="3" Height="3" Fill="#5F5F5F" Margin="0,1"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Chevron collapse/expand -->
+                    <Button Grid.Column="3" Style="{StaticResource IconButtonStyle}" Width="20" Height="20"
+                            Click="ToggleExpand_Click" ToolTip="Perkecil/perbesar">
+                        <Path x:Name="ChevronIcon" Data="M2,4 L6,0 L10,4" Stretch="Uniform" Width="10" Height="6"
+                              Stroke="#5F5F5F" StrokeThickness="1.5"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- ============ BODY (field-field property) ============ -->
+            <Grid x:Name="BodyPanel" Grid.Row="1" Margin="10,8,10,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Baris 1: Log Level -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Log Level" Style="{StaticResource FieldLabelStyle}"/>
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource FieldBorderStyle}" Margin="0,0,0,6">
+                    <!-- Item ComboBox statis (string), SelectedValue di-bind dua arah ke properti
+                         string "LogLevel" milik Activity (lihat CustomLogMessage.cs). Tidak perlu
+                         referensi tipe custom apa pun di sini. -->
+                    <ComboBox x:Name="LogLevelCombo"
+                              BorderThickness="0" Background="Transparent"
+                              VerticalContentAlignment="Center" Padding="6,2"
+                              SelectedValuePath="Content"
+                              SelectedValue="{Binding Path=ModelItem.LogLevel, Mode=TwoWay}">
+                        <ComboBoxItem Content="Trace"/>
+                        <ComboBoxItem Content="Debug"/>
+                        <ComboBoxItem Content="Info"/>
+                        <ComboBoxItem Content="Warn"/>
+                        <ComboBoxItem Content="Error"/>
+                        <ComboBoxItem Content="Fatal"/>
+                    </ComboBox>
+                </Border>
+
+                <!-- Baris 2: Message -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Message" Style="{StaticResource FieldLabelStyle}"/>
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource FieldBorderStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Ikon {} menandakan field menerima ekspresi -->
+                        <TextBlock Grid.Column="0" Text="{}{}" Foreground="#2E7CE4" FontWeight="Bold"
+                                   FontSize="12" VerticalAlignment="Center" Margin="6,0,4,0"/>
+
+                        <!-- Input ekspresi -->
+                        <sapv:ExpressionTextBox Grid.Column="1"
+                            OwnerActivity="{Binding Path=ModelItem}"
+                            Expression="{Binding Path=ModelItem.Message, Converter={StaticResource ArgumentToExpressionConverter}, ConverterParameter=In, Mode=TwoWay}"
+                            HintText="Text must be quoted"
+                            BorderThickness="0" Background="Transparent"
+                            MinLines="1" MaxLines="1" Margin="0,2"/>
+
+                        <!-- Ikon resize / perbesar editor (pojok panah diagonal) -->
+                        <Button Grid.Column="2" Style="{StaticResource IconButtonStyle}" Width="18" Height="18"
+                                ToolTip="Perbesar editor ekspresi">
+                            <Path Data="M0,6 L6,6 L6,0 M6,0 L0,6" Stretch="Uniform" Width="9" Height="9"
+                                  Stroke="#8A8A8A" StrokeThickness="1.3"/>
+                        </Button>
+
+                        <!-- Tombol tambah (+) untuk menambah baris / opsi lain -->
+                        <Button Grid.Column="3" Style="{StaticResource IconButtonStyle}" Width="20" Height="20"
+                                Margin="2,0,2,0" ToolTip="Tambah">
+                            <Border Width="16" Height="16" CornerRadius="8" BorderBrush="#8A8A8A" BorderThickness="1">
+                                <TextBlock Text="+" FontSize="11" Foreground="#5F5F5F"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Margin="0,-1,0,0"/>
+                            </Border>
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</sap:ActivityDesigner>
