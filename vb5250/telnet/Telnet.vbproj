@@ -174,8 +174,8 @@
     <Content Include="Reference\rfc855.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\IBMiClient\IBMiClient\IBMiClient.vbproj">
-      <Project>{D0304C57-1E72-45C1-A836-D0C98880DEC8}</Project>
+    <ProjectReference Include="..\ibmiclient\IBMiClient\IBMiClient.vbproj">
+      <Project>{d0304c57-1e72-45c1-a836-d0c98880dec8}</Project>
       <Name>IBMiClient</Name>
     </ProjectReference>
   </ItemGroup>
