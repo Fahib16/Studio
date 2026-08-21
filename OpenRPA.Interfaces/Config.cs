@@ -15,7 +15,12 @@ namespace OpenRPA
         public Dictionary<string, object> settings = new Dictionary<string, object>();
         public Dictionary<string, object> _properties = null;
         public Dictionary<string, object> properties { get { return GetProperty(null, new Dictionary<string, object>()); } set { SetProperty(null, value); } }
-        public string wsurl { get { return GetProperty(null, "wss://app.openiap.io/"); } set { SetProperty(null, value); } }
+        // Default is empty on purpose: an empty wsurl makes RobotInstance.init() skip connecting to any
+        // OpenFlow/OpenIAP server entirely and run Studio in local/offline mode (see RobotInstance.init()
+        // and OpenRPA.Storage.LiteDB.Instance, which fall back to "offline.db" when wsurl is empty).
+        // Set this to your own self-hosted OpenFlow/OpenIAP server (e.g. "wss://rpa.yourdomain.com/") if
+        // you ever want centralized login / multi-robot orchestration again.
+        public string wsurl { get { return GetProperty(null, ""); } set { SetProperty(null, value); } }
         //It will not open browser page for login if setted true and username/password (or unsafepassword) not null. Think about that username/password was provided and nobody could handle the browser login operation at the moment.
         public bool noweblogin { get { return GetProperty(null, false); } set { SetProperty(null, value); } }
         public string username { get { return GetProperty(null, ""); } set { SetProperty(null, value); } }
@@ -176,10 +181,13 @@ namespace OpenRPA
                             _local.settings = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
                         }
                         // _local = Load(filename);
-                        // Hack to force updating old clients for new domain names
-                        if (_local.wsurl == "wss://demo1.openrpa.dk/" || _local.wsurl == "wss://demo1.openrpa.dk")
+                        // This fork no longer talks to any OpenRPA/OpenIAP hosted server. Any wsurl left over
+                        // from an old install (the legacy demo domain, or the public app.openiap.io service)
+                        // is cleared so Studio always falls back to local/offline mode on next start.
+                        if (_local.wsurl == "wss://demo1.openrpa.dk/" || _local.wsurl == "wss://demo1.openrpa.dk"
+                            || _local.wsurl == "wss://app.openiap.io/" || _local.wsurl == "wss://app.openiap.io")
                         {
-                            _local.wsurl = "wss://app.openiap.io/";
+                            _local.wsurl = "";
                         }
                     }
                     catch (Exception ex)

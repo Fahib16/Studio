@@ -1,0 +1,99 @@
+<sap:ActivityDesigner
+    x:Class="OpenRPA.Activities.Custom.Design.UiPathStyleAttachWindowDesigner"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sap="clr-namespace:System.Activities.Presentation;assembly=System.Activities.Presentation"
+    xmlns:sapv="clr-namespace:System.Activities.Presentation.View;assembly=System.Activities.Presentation">
+
+    <sap:ActivityDesigner.Icon>
+        <DrawingBrush>
+            <DrawingBrush.Drawing>
+                <ImageDrawing>
+                    <ImageDrawing.Rect>
+                        <Rect Location="0,0" Size="16,16" />
+                    </ImageDrawing.Rect>
+                    <ImageDrawing.ImageSource>
+                        <BitmapImage UriSource="/OpenRPA;component/Resources/attachwindow.png" />
+                    </ImageDrawing.ImageSource>
+                </ImageDrawing>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+    </sap:ActivityDesigner.Icon>
+
+    <!-- Warna ungu sama seperti Attach Browser (satu keluarga "Container") -->
+    <sap:ActivityDesigner.Resources>
+        <SolidColorBrush x:Key="HeaderBrush" Color="#FF9B51E0" />
+    </sap:ActivityDesigner.Resources>
+
+    <Grid Margin="6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource HeaderBrush}"
+                CornerRadius="3" Padding="6,3" Margin="0,0,0,4">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="🗔" Foreground="White" FontSize="13" Margin="0,0,6,0" />
+                <TextBlock Text="Attach Window" Foreground="White" FontWeight="Bold" FontSize="13" />
+            </StackPanel>
+        </Border>
+
+        <!-- Kriteria pencarian window -->
+        <Border Grid.Row="1" BorderBrush="#FFDDDDDD" BorderThickness="1"
+                CornerRadius="2" Padding="6" Margin="0,0,0,4" Background="White">
+            <StackPanel>
+                <DockPanel LastChildFill="True" Margin="0,0,0,4">
+                    <TextBlock Text="Selector:" DockPanel.Dock="Left"
+                               VerticalAlignment="Center" Margin="0,0,6,0"
+                               FontWeight="SemiBold" Foreground="#FF555555" />
+                    <TextBox DockPanel.Dock="Right" MinWidth="120"
+                             Text="{Binding Path=ModelItem.Selector.Expression, Mode=TwoWay}" />
+                </DockPanel>
+                <DockPanel LastChildFill="True">
+                    <TextBlock Text="Title Pattern:" DockPanel.Dock="Left"
+                               VerticalAlignment="Center" Margin="0,0,6,0"
+                               FontWeight="SemiBold" Foreground="#FF555555" />
+                    <TextBox DockPanel.Dock="Right" MinWidth="120"
+                             Text="{Binding Path=ModelItem.TitlePattern.Expression, Mode=TwoWay}" />
+                </DockPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Badge khusus: status Re-attach, supaya langsung kelihatan di canvas
+             tanpa buka Properties panel — penting karena ini fitur andalan
+             activity ini untuk kasus window yang suka berganti -->
+        <Border Grid.Row="2" Background="#FFF0E6FA" CornerRadius="2" Padding="6,3" Margin="0,0,0,4">
+            <DockPanel LastChildFill="True">
+                <TextBlock Text="🔄" DockPanel.Dock="Left" Margin="0,0,4,0" FontSize="11" />
+                <TextBlock DockPanel.Dock="Right" FontSize="10" Foreground="#FF6B3FA0">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="Re-attach: {0} · Match: {1}">
+                            <Binding Path="ModelItem.ReAttachIfHandleInvalid" />
+                            <Binding Path="ModelItem.TitleMatchMode" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </DockPanel>
+        </Border>
+
+        <!-- Ringkasan tambahan -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,4">
+            <TextBlock Text="{Binding Path=ModelItem.ProcessName.Expression, StringFormat='Process: {0}'}"
+                       FontSize="10" Foreground="#FF888888" />
+        </StackPanel>
+
+        <!-- Drop-zone untuk activity anak (Body) -->
+        <Border Grid.Row="4" BorderBrush="#FF9B51E0" BorderThickness="1.5" CornerRadius="2" Padding="8" MinHeight="60"
+                Background="#FFF8F4FD">
+            <sap:WorkflowItemPresenter
+                Item="{Binding Path=ModelItem.Body.Handler, Mode=TwoWay}"
+                HintText="Drop activities here (dalam scope Window)"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+        </Border>
+    </Grid>
+</sap:ActivityDesigner>

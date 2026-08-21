@@ -58,6 +58,12 @@
 			<NuspecProperties>$(NuspecProperties);configurationname=$(ConfigurationName)</NuspecProperties>
 		</PropertyGroup>
 	</Target>
+	
+	<ItemGroup>
+	  <Compile Remove="Activities\Custom\Terminal\**" />
+	  <EmbeddedResource Remove="Activities\Custom\Terminal\**" />
+	  <None Remove="Activities\Custom\Terminal\**" />
+	</ItemGroup>
 	<ItemGroup>
 		<!-- https://tyrrrz.me/blog/additional-nuget-files-in-new-csproj -->
 		<None Include="$(OutputPath)\OpenRPA.exe.config" Pack="true" PackagePath="build" />
@@ -488,6 +494,7 @@
 		</Page>
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\Custom.Terminal\Custom.Terminal.csproj" />
 		<ProjectReference Include="..\OpenRPA.CodeEditor\OpenRPA.CodeEditor.csproj" />
 		<ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj" />
 		<ProjectReference Include="..\OpenRPA.Net\OpenRPA.Net.csproj">
