@@ -92,6 +92,7 @@
 		<None Remove="Activities\CommentOutDesigner.xaml" />
 		<None Remove="Activities\ContinueDesigner.xaml" />
 		<None Remove="Activities\CopyClipboardDesigner.xaml" />
+		<None Remove="Activities\Custom\MaximizeWindowDesigner.xaml" />
 		<None Remove="Activities\Custom\ReadRangeWorkbookDesigner.xaml" />
 		<None Remove="Activities\Custom\TypeIntoDesigner.xaml" />
 		<None Remove="Activities\Custom\UiPathStyleClickDesigner.xaml" />
@@ -244,6 +245,7 @@
 		<None Remove="Views\WorkItemQueuesView.xaml" />
 	</ItemGroup>
 	<ItemGroup>
+		<Page Include="Activities\Custom\MaximizeWindowDesigner.xaml" />
 		<Page Include="Activities\Custom\ReadRangeWorkbookDesigner.xaml">
 		  <Generator>MSBuild:Compile</Generator>
 		</Page>
@@ -495,6 +497,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Custom.Terminal\Custom.Terminal.csproj" />
+		<ProjectReference Include="..\CustomBrowser\Custom.Browser.csproj" />
 		<ProjectReference Include="..\OpenRPA.CodeEditor\OpenRPA.CodeEditor.csproj" />
 		<ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj" />
 		<ProjectReference Include="..\OpenRPA.Net\OpenRPA.Net.csproj">
