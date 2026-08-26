@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Studio Automation Bridge",
+  "version": "0.2.0",
+  "description": "Batch 2: tab management (buka/list/pilih/tutup tab) dari Studio.",
+
+  "permissions": [
+    "nativeMessaging",
+    "tabs"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_title": "Studio Automation Bridge"
+  }
+}

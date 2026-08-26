@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using OpenRPA.Interfaces;
 
 namespace OpenRPA.Activities.Custom
 {
@@ -40,6 +41,31 @@ namespace OpenRPA.Activities.Custom
     [Designer(typeof(Design.MaximizeWindowDesigner), typeof(System.ComponentModel.Design.IDesigner))]
     public class MaximizeWindow : CodeActivity
     {
+        public MaximizeWindow()
+        {
+            // Default merujuk ke variabel scope "browser" -- otomatis terisi
+            // KALAU activity ini di-drop di dalam Body/Do milik Open Browser
+            // yang di-drag FRESH dari toolbox (lihat OpenBrowser.Create()).
+            // Pola ini SAMA PERSIS dengan ClickElement.cs asli yang default
+            // Element = "item" saat nested di GetElement -- termasuk trade-
+            // off yang sama: kalau dipakai BERDIRI SENDIRI (bukan di dalam
+            // Open Browser), field ini akan tampil tanda seru merah karena
+            // "browser" tidak dikenal di scope itu. Itu bukan bug, tinggal
+            // kosongkan/isi manual kalau memang dipakai berdiri sendiri.
+            Tab = new InArgument<NativeMessagingMessageTab>()
+            {
+                Expression = new Microsoft.VisualBasic.Activities.VisualBasicValue<NativeMessagingMessageTab>("browser")
+            };
+        }
+
+        [Category("Input")]
+        [DisplayName("Tab")]
+        [Description("PALING DIREKOMENDASIKAN kalau ditaruh setelah/di dalam Open Browser: isi dengan " +
+                      "Output \"Browser\" dari Open Browser (langsung nama variabelnya, atau nama delegate " +
+                      "argument kalau di-nest di dalam Body-nya). Paling presisi karena langsung merujuk " +
+                      "tab yang BENERAN baru dibuka, tidak nebak lewat judul/proses/fokus OS sama sekali.")]
+        public InArgument<NativeMessagingMessageTab> Tab { get; set; }
+
         [Category("Input")]
         [DisplayName("Window Title")]
         [Description("Opsional. Kosongkan untuk maximize window yang SEDANG AKTIF (foreground) saat ini -- " +
@@ -94,31 +120,76 @@ namespace OpenRPA.Activities.Custom
 
             try
             {
+                var tab = Tab != null ? Tab.Get(context) : null;
                 var titlePattern = WindowTitle != null ? WindowTitle.Get(context) : null;
+                var processName = ProcessName != null ? ProcessName.Get(context) : null;
+                var matchMode = TitleMatchMode;
 
-                IntPtr found;
-
-                if (string.IsNullOrEmpty(titlePattern))
+                // Kalau Tab diisi (dari Output Open Browser), pakai judulnya
+                // langsung -- ini paling presisi, prioritas di atas WindowTitle
+                // manual maupun ProcessName.
+                if (tab != null && !string.IsNullOrEmpty(tab.title))
                 {
-                    // ----- BARU: tanpa WindowTitle, maximize window yang SEDANG
-                    // AKTIF (foreground). Ini yang bikin activity ini bisa
-                    // dipakai TANPA setting apa pun setelah Open Browser/
-                    // Attach Window/Attach Browser -- persis pengalaman UiPath,
-                    // karena activity-activity itu biasanya sudah bikin window
-                    // targetnya jadi foreground duluan sebelum Maximize Window
-                    // dijalankan. -----
-                    found = GetForegroundWindow();
+                    titlePattern = tab.title;
+                    matchMode = TitleMatchMode.Contains; // judul tab browser kadang beda dikit dari judul window OS (mis. ada "- Google Chrome" di belakang)
+                }
+
+                IntPtr found = IntPtr.Zero;
+
+                if (!string.IsNullOrEmpty(titlePattern) || !string.IsNullOrEmpty(processName))
+                {
+                    // ----- Jalur pasti: cari lewat judul dan/atau nama proses.
+                    // LEBIH RELIABLE daripada GetForegroundWindow(), karena tidak
+                    // bergantung window mana yang sedang punya fokus OS saat itu
+                    // (yang bisa jadi Visual Studio/Studio itu sendiri kalau kamu
+                    // test langsung dari situ, bukan window target yang dimaksud). -----
+                    found = FindWindowByTitleOrProcess(titlePattern, matchMode, processName);
+
+                    if (found == IntPtr.Zero)
+                        throw new InvalidOperationException(
+                            $"Maximize Window: window tidak ditemukan (Title: \"{titlePattern}\", " +
+                            $"Match: {matchMode}, Process: \"{processName}\").");
                 }
                 else
                 {
-                    var processName = ProcessName != null ? ProcessName.Get(context) : null;
-                    var matchMode = TitleMatchMode;
-                    found = IntPtr.Zero;
+                    // ----- Fallback: keduanya kosong, pakai window yang sedang
+                    // aktif (foreground) saat ini. CATATAN: kalau workflow ini
+                    // ditest LANGSUNG dari Visual Studio/Studio (klik Run/Debug),
+                    // window yang "aktif" menurut OS bisa jadi Studio itu sendiri,
+                    // BUKAN window target -- isi ProcessName untuk hasil yang
+                    // konsisten baik saat testing maupun dijalankan sungguhan. -----
+                    found = GetForegroundWindow();
 
-                    EnumWindows((hWnd, lParam) =>
+                    if (found == IntPtr.Zero)
+                        throw new InvalidOperationException(
+                            "Maximize Window: tidak ada window yang sedang aktif (foreground) saat ini.");
+                }
+
+                ShowWindow(found, SW_MAXIMIZE);
+            }
+            catch (Exception) when (continueOnError)
+            {
+                // Telan error kalau ContinueOnError = true
+            }
+        }
+
+        /// <summary>
+        /// Cari window pertama yang cocok Title (kalau diisi) DAN/ATAU Process
+        /// (kalau diisi). Kalau titlePattern kosong tapi processName diisi,
+        /// window PERTAMA milik proses itu langsung dipakai (tidak perlu match
+        /// judul apa pun) -- ini yang bikin "maximize window Edge/Chrome" jalan
+        /// stabil tanpa bergantung fokus OS.
+        /// </summary>
+        private static IntPtr FindWindowByTitleOrProcess(string titlePattern, TitleMatchMode matchMode, string processName)
+        {
+            IntPtr found = IntPtr.Zero;
+
+            EnumWindows((hWnd, lParam) =>
+            {
+                if (!IsWindowVisible(hWnd)) return true; // lanjut cari
+
+                if (!string.IsNullOrEmpty(titlePattern))
                 {
-                    if (!IsWindowVisible(hWnd)) return true; // lanjut cari
-
                     int length = GetWindowTextLength(hWnd);
                     if (length == 0) return true;
 
@@ -141,41 +212,28 @@ namespace OpenRPA.Activities.Custom
                     }
 
                     if (!titleMatches) return true;
-
-                    if (!string.IsNullOrEmpty(processName))
-                    {
-                        try
-                        {
-                            GetWindowThreadProcessId(hWnd, out uint pid);
-                            var proc = Process.GetProcessById((int)pid);
-                            if (!string.Equals(proc.ProcessName, processName, StringComparison.OrdinalIgnoreCase))
-                                return true; // lanjut cari, proses tidak cocok
-                        }
-                        catch
-                        {
-                            return true; // proses sudah exit / tidak bisa diakses, lanjut cari
-                        }
-                    }
-
-                    found = hWnd;
-                    return false; // ketemu, stop enumerasi
-                    }, IntPtr.Zero);
-
-                    if (found == IntPtr.Zero)
-                        throw new InvalidOperationException(
-                            $"Maximize Window: window dengan judul \"{titlePattern}\" ({matchMode}) tidak ditemukan.");
                 }
 
-                if (found == IntPtr.Zero)
-                    throw new InvalidOperationException(
-                        "Maximize Window: tidak ada window yang sedang aktif (foreground) saat ini.");
+                if (!string.IsNullOrEmpty(processName))
+                {
+                    try
+                    {
+                        GetWindowThreadProcessId(hWnd, out uint pid);
+                        var proc = Process.GetProcessById((int)pid);
+                        if (!string.Equals(proc.ProcessName, processName, StringComparison.OrdinalIgnoreCase))
+                            return true; // lanjut cari, proses tidak cocok
+                    }
+                    catch
+                    {
+                        return true; // proses sudah exit / tidak bisa diakses, lanjut cari
+                    }
+                }
 
-                ShowWindow(found, SW_MAXIMIZE);
-            }
-            catch (Exception) when (continueOnError)
-            {
-                // Telan error kalau ContinueOnError = true
-            }
+                found = hWnd;
+                return false; // ketemu, stop enumerasi
+            }, IntPtr.Zero);
+
+            return found;
         }
     }
 }

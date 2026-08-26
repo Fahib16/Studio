@@ -41,17 +41,29 @@ namespace Custom.Browser
     ///     dioper ke child activity. Activity Click/TypeInto/GetElement
     ///     versi Web otomatis kerja di tab yang lagi aktif menurut NMHook,
     ///     berapa pun dalamnya nested di canvas.
-    ///   - Sebagai bonus tidak wajib, delegate argument Body ("browser")
-    ///     tetap diisi objek tab yang berhasil dibuka/dipilih — activity
-    ///     anak BOLEH baca infonya (Title/Url/dst) kalau perlu, tapi tidak
-    ///     WAJIB dan tidak mempengaruhi target elemen mana pun.
+    ///   - Sebagai bonus tidak wajib, delegate argument Body BISA diisi objek
+    ///     tab yang berhasil dibuka/dipilih -- activity anak BOLEH baca
+    ///     infonya (Title/Url/dst) kalau perlu, tapi tidak WAJIB dan tidak
+    ///     mempengaruhi target elemen mana pun.
+    ///   - BARU: implementasi IActivityTemplateFactory (Create()) supaya
+    ///     kalau activity ini di-DRAG FRESH DARI TOOLBOX, delegate argument
+    ///     Body-nya OTOMATIS diberi nama "browser" -- pola PERSIS sama
+    ///     seperti GetElement.Create() yang menamai delegate argument-nya
+    ///     "item". Ini yang bikin MaximizeWindow (yang default-nya merujuk
+    ///     ke "browser") bisa langsung jalan zero-config kalau di-drop di
+    ///     dalam Body Open Browser yang di-drag fresh ini.
+    ///     CATATAN: kalau OpenBrowser SUDAH ada di canvas kamu SEBELUM
+    ///     perubahan ini (dibuat manual, bukan lewat drag toolbox baru),
+    ///     delegate argument-nya TIDAK otomatis ke-rename -- perlu drag ulang
+    ///     instance baru dari toolbox, atau rename manual argument-nya jadi
+    ///     "browser" di kotak kecil pojok drop-zone.
     ///   - OpenBrowser TIDAK menutup tab di akhir scope (beda dari
     ///     TerminalSession) — ini konsisten dengan OpenURL asli yang juga
     ///     tidak pernah menutup tab. Kalau butuh tutup, pakai CloseTab
     ///     activity terpisah.
     /// </summary>
     [Designer(typeof(Design.OpenBrowserDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    public sealed class OpenBrowser : NativeActivity
+    public sealed class OpenBrowser : NativeActivity, System.Activities.Presentation.IActivityTemplateFactory
     {
         [Category("Input")]
         [RequiredArgument]
@@ -225,6 +237,24 @@ namespace Custom.Browser
         {
             // Biarkan exception ter-propagate, Try Catch di level workflow
             // tetap bisa menangani.
+        }
+
+        /// <summary>
+        /// IActivityTemplateFactory.Create -- dipanggil OTOMATIS oleh WF
+        /// Designer saat activity ini di-drag dari TOOLBOX (bukan saat
+        /// sekadar di-load dari XAML yang sudah ada). Pola PERSIS sama
+        /// dengan GetElement.Create() -- bikin instance baru dengan Body
+        /// yang delegate argument-nya sudah dinamai "browser" dari awal.
+        /// </summary>
+        public Activity Create(System.Windows.DependencyObject target)
+        {
+            var fef = new OpenBrowser();
+            var da = new DelegateInArgument<NativeMessagingMessageTab> { Name = "browser" };
+            fef.Body = new ActivityAction<NativeMessagingMessageTab>
+            {
+                Argument = da
+            };
+            return fef;
         }
     }
 }

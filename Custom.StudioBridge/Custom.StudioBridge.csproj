@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{364D358E-47DB-48EF-8D4D-C41FB45E385E}</ProjectGuid>
+    <ProjectGuid>{0AED96B8-B1F5-42CC-B54E-ADF20E15772A}</ProjectGuid>
     <OutputType>library</OutputType>
-    <RootNamespace>CustomBrowser</RootNamespace>
-    <AssemblyName>Custom.Browser</AssemblyName>
+    <RootNamespace>Custom.StudioBridge</RootNamespace>
+    <AssemblyName>Custom.StudioBridge</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities" />
     <Reference Include="System.Activities.Presentation" />
@@ -50,12 +53,15 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Activities\AttachBrowser.cs" />
-    <Compile Include="Activities\AttachBrowserDesigner.xaml.cs">
-      <DependentUpon>AttachBrowserDesigner.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Activities\OpenBrowser.cs" />
-    <Compile Include="Activities\OpenBrowserDesigner.xaml.cs" />
+    <Compile Include="Activities\StudioActivateTab.cs" />
+    <Compile Include="Activities\StudioActivateTabDesigner.xaml.cs" />
+    <Compile Include="Activities\StudioCloseTab.cs" />
+    <Compile Include="Activities\StudioCloseTabDesigner.xaml.cs" />
+    <Compile Include="Activities\StudioListTabs.cs" />
+    <Compile Include="Activities\StudioListTabsDesigner.xaml.cs" />
+    <Compile Include="Activities\StudioOpenTab.cs" />
+    <Compile Include="Activities\StudioOpenTabDesigner.xaml.cs" />
+    <Compile Include="Activities\StudioPipeClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -73,27 +79,26 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj">
-      <Project>{5aaa6277-bdc9-4b24-950b-eb7a43ab948a}</Project>
-      <Name>OpenRPA.Interfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenRPA.NM\OpenRPA.NM.csproj">
-      <Project>{6acba332-838a-4bad-abae-b50bcb069879}</Project>
-      <Name>OpenRPA.NM</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="Activities\AttachBrowserDesigner.xaml">
+    <Page Include="Activities\StudioActivateTabDesigner.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Activities\OpenBrowserDesigner.xaml">
+    <Page Include="Activities\StudioCloseTabDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\StudioListTabsDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\StudioOpenTabDesigner.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
