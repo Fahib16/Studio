@@ -31,7 +31,7 @@ namespace Studio.NativeHost
     public class Program
     {
         private const string PipeName = "StudioNativeHostPipe";
-        private const int ResponseTimeoutSeconds = 10;
+        private const int DefaultResponseTimeoutSeconds = 10;
 
         private static Stream _browserStdin;
         private static Stream _browserStdout;
@@ -110,13 +110,19 @@ namespace Studio.NativeHost
                         var id = Guid.NewGuid().ToString("N");
                         request["id"] = id;
 
+                        // Beberapa command (mis. "startPicker") bisa makan
+                        // waktu lama karena nunggu user klik sesuatu di
+                        // browser -- request pipe boleh sertakan "timeoutMs"
+                        // sendiri, kalau tidak ada pakai default 10 detik.
+                        var timeoutMs = request["timeoutMs"]?.Value<int>() ?? (DefaultResponseTimeoutSeconds * 1000);
+
                         var waitEvent = new ManualResetEventSlim(false);
                         lock (_pendingLock) { _pendingWaits[id] = waitEvent; }
 
                         // Teruskan request ke extension lewat native messaging.
                         WriteNativeMessage(_browserStdout, request);
 
-                        bool got = waitEvent.Wait(TimeSpan.FromSeconds(ResponseTimeoutSeconds));
+                        bool got = waitEvent.Wait(TimeSpan.FromMilliseconds(timeoutMs));
 
                         JObject response;
                         lock (_pendingLock)

@@ -72,6 +72,8 @@ namespace OpenRPA
             }
         }
         public static System.Windows.Forms.NotifyIcon notifyIcon { get; set; } = new System.Windows.Forms.NotifyIcon();
+        // --- TAMBAHKAN BLOK INI UNTUK MENGGANTIKAN GENERATE OTOMATIS VISUAL STUDIO ---
+
         public App()
         {
             if (!string.IsNullOrEmpty(Config.local.culture))
@@ -203,7 +205,24 @@ namespace OpenRPA
             {
                 AutomationHelper.syncContext = System.Threading.SynchronizationContext.Current;
                 System.Threading.Thread.CurrentThread.Name = "UIThread";
-                if (!Config.local.isagent)
+
+                // --- TAMBAHKAN LOGIKA CUSTOM DI SINI ---
+                // Ambil nilai default dari config bawaan OpenRPA
+                bool isAssistantMode = Config.local.isagent;
+
+                // Timpa nilai default jika ada argumen yang dilempar dari shortcut MSI
+                if (e.Args.Contains("--assistant"))
+                {
+                    isAssistantMode = true;
+                }
+                else if (e.Args.Contains("--studio"))
+                {
+                    isAssistantMode = false;
+                }
+                // ---------------------------------------
+
+                // Ubah pengecekan Config.local.isagent menggunakan variabel isAssistantMode yang baru
+                if (!isAssistantMode)
                 {
                     StartupUri = new Uri("/OpenRPA;component/MainWindow.xaml", UriKind.Relative);
                     notifyIcon.Visible = false;
@@ -213,7 +232,10 @@ namespace OpenRPA
                     StartupUri = new Uri("/OpenRPA;component/AgentWindow.xaml", UriKind.Relative);
                     notifyIcon.Visible = true;
                 }
+
+                // ... (biarkan sisa kode di bawahnya tetap sama seperti aslinya)
                 if (Config.local.files_pending_deletion.Length > 0)
+                // ...
                 {
                     bool sucess = true;
                     foreach (var f in Config.local.files_pending_deletion)

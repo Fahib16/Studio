@@ -1,12 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Studio Automation Bridge",
-  "version": "0.2.0",
-  "description": "Batch 2: tab management (buka/list/pilih/tutup tab) dari Studio.",
+  "version": "0.11.0",
+  "description": "Batch 5-11: auto-connect, selector dinamis+XPath, retry timeout, screenshot elemen (mirip UiPath).",
 
   "permissions": [
     "nativeMessaging",
-    "tabs"
+    "tabs",
+    "scripting"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
   ],
 
   "background": {

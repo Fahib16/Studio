@@ -53,15 +53,41 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activities\Base64ToImageConverter.cs" />
+    <Compile Include="Activities\Base64ToImageSourceConverter.cs" />
+    <Compile Include="Activities\IndicateHelper.cs" />
     <Compile Include="Activities\StudioActivateTab.cs" />
     <Compile Include="Activities\StudioActivateTabDesigner.xaml.cs" />
+    <Compile Include="Activities\StudioAttachTab.cs" />
+    <Compile Include="Activities\StudioAttachTabDesigner.xaml.cs" />
+    <Compile Include="Activities\StudioClick.cs" />
+    <Compile Include="Activities\StudioClickDesigner.xaml.cs">
+      <DependentUpon>StudioClickDesigner.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Activities\StudioCloseTab.cs" />
     <Compile Include="Activities\StudioCloseTabDesigner.xaml.cs" />
+    <Compile Include="Activities\StudioGetText.cs" />
+    <Compile Include="Activities\StudioGetTextDesigner.xaml.cs">
+      <DependentUpon>StudioGetTextDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\StudioHighlight.cs" />
+    <Compile Include="Activities\StudioHighlightDesigner.xaml.cs">
+      <DependentUpon>StudioHighlightDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\StudioLaunchChrome.cs" />
+    <Compile Include="Activities\StudioLaunchChromeDesigner.xaml.cs" />
     <Compile Include="Activities\StudioListTabs.cs" />
     <Compile Include="Activities\StudioListTabsDesigner.xaml.cs" />
     <Compile Include="Activities\StudioOpenTab.cs" />
     <Compile Include="Activities\StudioOpenTabDesigner.xaml.cs" />
     <Compile Include="Activities\StudioPipeClient.cs" />
+    <Compile Include="Activities\StudioSetText.cs" />
+    <Compile Include="Activities\StudioSetTextDesigner.xaml.cs">
+      <DependentUpon>StudioSetTextDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\TabPickerWindow.xaml.cs">
+      <DependentUpon>TabPickerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -79,6 +105,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="Activities\README.md" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -90,7 +117,27 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Activities\StudioAttachTabDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\StudioClickDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Activities\StudioCloseTabDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\StudioGetTextDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\StudioHighlightDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\StudioLaunchChromeDesigner.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -99,6 +146,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Activities\StudioOpenTabDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\StudioSetTextDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\TabPickerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -1,0 +1,103 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <!--
+    Daftar file SEKARANG diambil otomatis lewat HarvestDirectory di
+    StudioSetup.wixproj (folder Studio\debug\net462\ seluruhnya) —
+    ComponentGroup "HarvestedFiles" hasil harvest itu di-reference di
+    Feature bawah, bukan ditulis manual satu-satu lagi.
+
+    UpgradeCode di bawah ini CUMA CONTOH. Ganti dengan GUID BARU hasil
+    generate sendiri (di Visual Studio: Tools > Create GUID) SEBELUM
+    dipakai sungguhan — UpgradeCode harus unik untuk product kamu dan
+    TIDAK BOLEH berubah di versi berikutnya.
+  -->
+  <Package Name="Studio"
+           Manufacturer="$(var.Manufacturer)"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="12345678-90AB-CDEF-1234-567890ABCDEF">
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="MainFeature" Title="Studio" Level="1">
+      <ComponentGroupRef Id="HarvestedFiles" />
+      <ComponentGroupRef Id="ShortcutComponents" />
+      <ComponentGroupRef Id="DesktopShortcutComponents" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFilesFolder">
+      <Directory Id="INSTALLFOLDER" Name="Studio" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="StudioMenuFolder" Name="Studio" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
+  </Fragment>
+
+  <!--
+    DUA shortcut, target EXE SAMA (OpenRPA.exe), beda Arguments dan Icon.
+    GANTI path SourceFile di dua <Icon> di bawah ke lokasi file .ico kamu
+    yang sebenarnya (bisa relatif dari folder StudioInstaller\, atau path
+    absolut).
+  -->
+  <Fragment>
+    <Icon Id="Icon.Studio" SourceFile="C:\Users\Fajar\source\repos\Studio\StudioInstaller\Studio.ico" />
+    <Icon Id="Icon.Assistant" SourceFile="C:\Users\Fajar\source\repos\Studio\StudioInstaller\Assistant.ico" />
+
+    <ComponentGroup Id="ShortcutComponents" Directory="StudioMenuFolder">
+      <Component Id="Cmp_StudioShortcut" Guid="*">
+        <Shortcut Id="StudioShortcut"
+                  Name="Studio"
+                  Description="Buka Studio"
+                  Target="[INSTALLFOLDER]OpenRPA.exe"
+                  Arguments="--studio"
+                  Icon="Icon.Studio"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="RemoveStudioMenuFolder" Directory="StudioMenuFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\Studio\Shortcuts" Name="StudioInstalled" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="Cmp_AssistantShortcut" Guid="*">
+        <Shortcut Id="AssistantShortcut"
+                  Name="Assistant"
+                  Description="Buka Assistant"
+                  Target="[INSTALLFOLDER]OpenRPA.exe"
+                  Arguments="--assistant"
+                  Icon="Icon.Assistant"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU" Key="Software\Studio\Shortcuts" Name="AssistantInstalled" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <!-- Shortcut Desktop — Icon.Studio/Icon.Assistant pakai ulang yang
+       sudah didefinisikan di atas, tidak perlu didefinisikan lagi. Tidak
+       perlu RemoveFolder di sini karena DesktopFolder itu sendiri folder
+       sistem yang selalu ada — cuma file shortcut-nya yang dihapus saat
+       uninstall, bukan foldernya. -->
+  <Fragment>
+    <ComponentGroup Id="DesktopShortcutComponents" Directory="DesktopFolder">
+      <Component Id="Cmp_StudioDesktopShortcut" Guid="*">
+        <Shortcut Id="StudioDesktopShortcut"
+                  Name="Studio"
+                  Description="Buka Studio"
+                  Target="[INSTALLFOLDER]OpenRPA.exe"
+                  Arguments="--studio"
+                  Icon="Icon.Studio"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU" Key="Software\Studio\Shortcuts" Name="StudioDesktopInstalled" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="Cmp_AssistantDesktopShortcut" Guid="*">
+        <Shortcut Id="AssistantDesktopShortcut"
+                  Name="Assistant"
+                  Description="Buka Assistant"
+                  Target="[INSTALLFOLDER]OpenRPA.exe"
+                  Arguments="--assistant"
+                  Icon="Icon.Assistant"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU" Key="Software\Studio\Shortcuts" Name="AssistantDesktopInstalled" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

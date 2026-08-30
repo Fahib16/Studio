@@ -29,6 +29,11 @@ namespace Custom.StudioBridge
                     request[prop.Name] = prop.Value;
             }
 
+            // Beritahu native host berapa lama dia boleh nunggu balasan dari
+            // extension untuk COMMAND INI SPESIFIK (mis. "startPicker" butuh
+            // waktu lebih lama krn nunggu user klik elemen di browser).
+            request["timeoutMs"] = responseTimeoutMs;
+
             using (var pipe = new NamedPipeClientStream(".", PipeName, PipeDirection.InOut))
             {
                 try
@@ -97,6 +102,26 @@ namespace Custom.StudioBridge
             }
 
             return sb.ToString();
+        }
+        /// <summary>
+        /// Panggil mode "Indicate on screen" di tab tertentu. Timeout jauh
+        /// lebih panjang dari command biasa (default 2 menit) karena nunggu
+        /// user benar-benar klik elemen di layar -- bukan operasi instan.
+        /// Return null kalau user Escape/batal, tidak throw untuk kasus itu
+        /// (batal itu keputusan sah, bukan error).
+        /// </summary>
+        public static JObject StartIndicate(int tabId, int timeoutMs = 120000)
+        {
+            try
+            {
+                var result = SendCommand("startPicker", new JObject { ["tabId"] = tabId },
+                    connectTimeoutMs: 5000, responseTimeoutMs: timeoutMs);
+                return result as JObject;
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Dibatalkan"))
+            {
+                return null; // user tekan Escape
+            }
         }
     }
 }

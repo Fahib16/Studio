@@ -1,0 +1,28 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <OutputName>StudioSetup</OutputName>
+    <!-- GANTI Manufacturer sesuai nama yang kamu mau. HarvestPath WAJIB
+         didefinisikan di sini karena dipakai HarvestDirectory di bawah. -->
+    <DefineConstants>ProductVersion=1.0.0.0;Manufacturer=Nama Perusahaan Kamu;HarvestPath=..\debug\net462\</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+    <PackageReference Include="WixToolset.Heat" Version="5.0.2" />
+  </ItemGroup>
+
+  <!-- Auto-harvest SEMUA file di folder output bersama (Studio\debug\net462\),
+       jadi tidak perlu tulis satu-satu manual. Hasilnya jadi ComponentGroup
+       bernama "HarvestedFiles" yang di-reference dari Package.wxs. -->
+  <ItemGroup>
+    <HarvestDirectory Include="..\debug\net462\">
+      <ComponentGroupName>HarvestedFiles</ComponentGroupName>
+      <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
+      <PreprocessorVariable>var.HarvestPath</PreprocessorVariable>
+      <SuppressRegistry>true</SuppressRegistry>
+      <SuppressRootDirectory>true</SuppressRootDirectory>
+      <AutogenerateGuids>true</AutogenerateGuids>
+    </HarvestDirectory>
+  </ItemGroup>
+</Project>
