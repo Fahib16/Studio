@@ -655,6 +655,19 @@
 		<None Update="settings.default.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<!--
+			Ekstensi Chrome ikut ke folder keluaran.
+
+			Supaya ia BERPINDAH BERSAMA aplikasinya: menyalin folder keluaran
+			ke komputer lain berarti ekstensinya ikut, dan Studio bisa
+			memuatnya sendiri tanpa siapa pun perlu tahu di mana repositorinya.
+		-->
+		<None Include="..\Extension\manifest.json" Link="Extension\manifest.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\Extension\background.js" Link="Extension\background.js">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 	<Target Name="PushNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'ReleaseNuget'">
 		<Exec Command="nuget.exe push $(OutputPath)..\$(PackageId).$(PackageVersion).nupkg -Source nuget.org" />

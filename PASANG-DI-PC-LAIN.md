@@ -77,13 +77,28 @@ powershell -ExecutionPolicy Bypass -File .\pasang-jembatan-chrome.ps1
   ditulis tangan;
 - mendaftarkannya untuk Chrome, Edge, dan Brave sekaligus.
 
-Lalu satu langkah yang memang tidak bisa diotomatiskan — Chrome tidak
-menyediakan jalan otomatis untuk ekstensi yang belum dipaketkan, dan itu
-disengaja oleh Google:
+Lalu satu langkah yang memang tidak bisa diotomatiskan tanpa hak
+administrator — lihat "Kenapa tidak bisa otomatis" di bawah:
 
 1. Buka `chrome://extensions`
 2. Nyalakan **Developer mode** di pojok kanan atas
-3. **Load unpacked** → pilih folder `Extension`
+3. **Load unpacked** → pilih folder `debug\net462\Extension`
+
+> Pilih folder di **`debug\net462\Extension`**, bukan `Extension` di akar
+> repositori. Build menyalinnya ke sana, jadi folder keluaran sudah lengkap
+> dengan sendirinya — menyalin `debug\net462` ke komputer lain berarti
+> ekstensinya ikut, tanpa perlu membawa repositorinya.
+
+### Kalau setelah reload ID-nya masih yang lama
+
+Itu normal. Chrome menetapkan ID ekstensi unpacked pada saat **dimuat
+pertama kali**, lalu menyimpannya. Tombol **Reload** hanya memuat ulang
+berkasnya — ID-nya tidak dihitung ulang, jadi field `key` yang baru tidak
+dilirik.
+
+Yang terjadi kemudian: Chrome membuat entri **kedua** dengan ID yang benar,
+sementara entri lama tetap terdaftar dalam keadaan nonaktif. Buang entri
+lama lewat tombol **Remove**.
 
 ID-nya harus **`ofhgclecgpimnjjnegogaeikmfjicnib`**. Kalau berbeda, berarti
 field `key` di `Extension\manifest.json` ikut terubah.
@@ -103,6 +118,42 @@ Sekarang `key` berisi kunci publik tetap, jadi ID-nya sama di mesin mana pun.
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\pasang-jembatan-chrome.ps1 -Batalkan
 ```
+
+---
+
+## Kenapa "Load unpacked" tidak bisa dihilangkan tanpa admin
+
+Empat jalan diuji di Chrome **152.0.7977.76**. Hasilnya:
+
+| Cara | Admin | Klik | Hasil |
+|---|---|---|---|
+| **Load unpacked** | tidak | 1 + Developer mode | **berhasil**, ID stabil berkat `key` |
+| `chrome --load-extension=...` | tidak | 0 | **gagal** — argumennya diabaikan; Chrome mencabut dukungannya karena banyak disalahgunakan malware. Tetap gagal walau ditambah `--enable-unsafe-extension-debugging` |
+| Kebijakan di `HKCU\Software\Policies\Google\Chrome` | tidak | 0 | **gagal** — Windows hanya memberi `ReadKey` pada cabang `Policies` untuk pengguna biasa, justru supaya kebijakan tidak bisa dipasang sendiri |
+| Registry `HKCU\Software\Google\Chrome\Extensions` + `.crx` | tidak | 1 (aktifkan) | **terpasang tapi dinonaktifkan** Chrome (`disable_reasons: 256`) karena bukan dari Web Store |
+
+Jadi tanpa hak administrator, satu langkah manual tidak bisa dihindari —
+dan "Load unpacked" adalah yang paling sederhana di antaranya.
+
+### Kalau boleh pakai admin sekali saat pemasangan
+
+Kebijakan di **HKLM** (`ExtensionSettings` dengan `installation_mode:
+normal_installed`) memasang ekstensi secara diam-diam dan tidak bisa
+dimatikan pengguna. Itu mekanisme resmi Chrome Enterprise.
+
+Belum diuji di sini karena butuh elevasi. Konsekuensinya juga perlu
+ditimbang: ekstensinya harus dipaketkan jadi `.crx`, dan **setiap perubahan
+`background.js` menuntut paket ulang plus versi dinaikkan** — jauh lebih
+merepotkan daripada Load unpacked untuk komputer tempat Anda masih
+mengembangkan.
+
+### Kalau nanti dipakai banyak orang
+
+Terbitkan ke Chrome Web Store sebagai **Unlisted**. Pemasangan di komputer
+baru menjadi: buka tautannya, klik **Add to Chrome**. Tanpa Developer mode,
+tanpa `.crx`, dan pembaruannya otomatis. Biayanya pendaftaran pengembang
+satu kali, dan ada proses tinjauan — untuk `host_permissions: <all_urls>`
+Google akan meminta penjelasan tertulis, yang normal untuk alat automasi.
 
 ---
 
