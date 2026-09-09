@@ -4,7 +4,9 @@
 		<CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net462</TargetFramework>
-		<ApplicationIcon>Resources\open_rpa.ico</ApplicationIcon>
+		<Product>JakForge</Product>
+		<AssemblyTitle>JakForge Studio</AssemblyTitle>
+		<ApplicationIcon>Resources\JakForge\jakforge.ico</ApplicationIcon>
 		<StartupObject />
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<!--<NuspecFile>nuget.nuspec</NuspecFile>-->
@@ -70,6 +72,23 @@
 		<None Include="Resources\openrpa.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 	<ItemGroup>
+		<!--
+			Empat paket ini disebut EKSPLISIT bukan karena kodenya memakai
+			langsung, tapi supaya versi yang TERSALIN ke folder keluaran sama
+			dengan versi yang ditulis di bindingRedirect OpenRPA.exe.config.
+
+			Sebelumnya keduanya berbeda — redirect meminta 9.0.0.0 sementara
+			yang tersalin 5.0.0.0, dan seterusnya — sehingga setiap kali
+			assembly itu dimuat, .NET melempar FileLoadException "manifest
+			definition does not match". Yang paling parah terjadi saat Studio
+			memindai tipe activity lewat GetExportedTypes: pemindaian gagal,
+			workflow tidak bisa disusun, dan kanvas terbuka KOSONG — sehingga
+			tombol Run tidak punya apa pun untuk dijalankan.
+		-->
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+		<PackageReference Include="System.Memory" Version="4.5.5" />
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
 		<PackageReference Include="ClosedXML" Version="0.105.1" />
 		<PackageReference Include="DotNetProjects.Wpf.Toolkit" Version="5.0.43" />
 		<PackageReference Include="ExcelDataReader" Version="3.9.0" />
@@ -93,10 +112,6 @@
 		<None Remove="Activities\CommentOutDesigner.xaml" />
 		<None Remove="Activities\ContinueDesigner.xaml" />
 		<None Remove="Activities\CopyClipboardDesigner.xaml" />
-		<None Remove="Activities\Custom\MaximizeWindowDesigner.xaml" />
-		<None Remove="Activities\Custom\ReadRangeWorkbookDesigner.xaml" />
-		<None Remove="Activities\Custom\TypeIntoDesigner.xaml" />
-		<None Remove="Activities\Custom\UiPathStyleClickDesigner.xaml" />
 		<None Remove="Activities\DeleteWorkitemDesigner.xaml" />
 		<None Remove="Activities\DetectorDesigner.xaml" />
 		<None Remove="Activities\FocusElementDesigner.xaml" />
@@ -246,16 +261,6 @@
 		<None Remove="Views\WorkItemQueuesView.xaml" />
 	</ItemGroup>
 	<ItemGroup>
-		<Page Include="Activities\Custom\MaximizeWindowDesigner.xaml" />
-		<Page Include="Activities\Custom\ReadRangeWorkbookDesigner.xaml">
-		  <Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Include="Activities\Custom\TypeIntoDesigner.xaml">
-		  <Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Include="Activities\Custom\UiPathStyleClickDesigner.xaml">
-		  <Generator>MSBuild:Compile</Generator>
-		</Page>
 		<Page Include="Activities\Workitems\ThrowBusinessRuleExceptionDesigner.xaml">
 		  <SubType>Designer</SubType>
 		  <Generator>MSBuild:Compile</Generator>
@@ -360,6 +365,16 @@
 		<Page Include="AgentWindow.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>
+    <None Remove="Views\JakForgeProjectView.xaml" />
+    <Page Include="Views\JakForgeProjectView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <None Remove="Views\JakForgeStartView.xaml" />
+    <Page Include="Views\JakForgeStartView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
 		<Page Include="Views\AgentViewProjects.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>
@@ -497,8 +512,17 @@
 		</Page>
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\Custom.Data\Custom.Data.csproj" />
+		<ProjectReference Include="..\Custom.Database\Custom.Database.csproj" />
+		<ProjectReference Include="..\Custom.Excel\Custom.Excel.csproj" />
+		<ProjectReference Include="..\Custom.Files\Custom.Files.csproj" />
+		<ProjectReference Include="..\Custom.Flow\Custom.Flow.csproj" />
+		<ProjectReference Include="..\Custom.Orchestrator\Custom.Orchestrator.csproj" />
+		<ProjectReference Include="..\Custom.Mail\Custom.Mail.csproj" />
 		<ProjectReference Include="..\Custom.StudioBridge\Custom.StudioBridge.csproj" />
+		<ProjectReference Include="..\Custom.System\Custom.System.csproj" />
 		<ProjectReference Include="..\Custom.Terminal\Custom.Terminal.csproj" />
+		<ProjectReference Include="..\Custom.Window\Custom.Window.csproj" />
 		<ProjectReference Include="..\CustomBrowser\Custom.Browser.csproj" />
 		<ProjectReference Include="..\OpenRPA.CodeEditor\OpenRPA.CodeEditor.csproj" />
 		<ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj" />
@@ -526,6 +550,11 @@
 		<Reference Include="System.Activities.DurableInstancing" />
 		<Reference Include="System.Activities.Presentation" />
 		<Reference Include="System.Data.DataSetExtensions" />
+		<!-- Pengemasan proyek jadi zip saat menerbitkan ke ForgeHub. -->
+		<Reference Include="System.IO.Compression" />
+		<Reference Include="System.IO.Compression.FileSystem" />
+		<!-- ProtectedData, untuk menyandikan kata sandi ForgeHub di berkas setelan. -->
+		<Reference Include="System.Security" />
 		<Reference Include="System.Runtime.DurableInstancing" />
 		<Reference Include="System.Runtime.Remoting" />
 		<Reference Include="System.Windows.Controls.Ribbon" />
@@ -618,6 +647,14 @@
 		<None Update="System.Windows.Interactivity.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<!--
+			Setelan bawaan ikut ke folder keluaran supaya berada di sebelah
+			OpenRPA.exe. Config mencarinya di situ, dan menyalinnya sekali ke
+			folder data mesin yang belum punya settings.json.
+		-->
+		<None Update="settings.default.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 	<Target Name="PushNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'ReleaseNuget'">
 		<Exec Command="nuget.exe push $(OutputPath)..\$(PackageId).$(PackageVersion).nupkg -Source nuget.org" />
@@ -639,4 +676,224 @@
 	<!--<Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="ECHO ON&#xD;&#xA;dir" />
   </Target>-->
+  <ItemGroup>
+    <None Remove="Themes\JakForgePalette.Light.xaml" />
+    <None Remove="Themes\JakForgePalette.Dark.xaml" />
+    <None Remove="Views\JakForgeAppearanceWindow.xaml" />
+    <Page Include="Views\JakForgeAppearanceWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Themes\JakForgePalette.Light.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Themes\JakForgePalette.Dark.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <None Remove="Themes\JakForge.xaml" />
+    <None Remove="Views\JakForgeLoadingWindow.xaml" />
+    <Page Include="Themes\JakForge.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <None Remove="Views\JakForgeDashboardWindow.xaml" />
+    <Page Include="Views\JakForgeDashboardWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <None Remove="Views\JakForgeSequenceDesigner.xaml" />
+    <Page Include="Views\JakForgeSequenceDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <None Remove="Views\JakForgeActivityPicker.xaml" />
+    <None Remove="Views\JakForgeOutputView.xaml" />
+    <Page Include="Views\JakForgeOutputView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <None Remove="Views\JakForgeDebugView.xaml" />
+    <Page Include="Views\JakForgeDebugView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\JakForgeActivityPicker.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\JakForgeLoadingWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Resource Include="Resources\JakForge\jakforge.ico" />
+    <Resource Include="Resources\JakForge\logo_mark.png" />
+    <Resource Include="Resources\JakForge\logo_wordmark.png" />
+    <Resource Include="Resources\JakForge\logo_full.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\jf_addworkitem.png" />
+    <EmbeddedResource Include="Resources\jf_addworkitem.png">
+      <LogicalName>OpenRPA.Resources.jf_addworkitem.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_balloontip.png" />
+    <EmbeddedResource Include="Resources\jf_balloontip.png">
+      <LogicalName>OpenRPA.Resources.jf_balloontip.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_break.png" />
+    <EmbeddedResource Include="Resources\jf_break.png">
+      <LogicalName>OpenRPA.Resources.jf_break.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_bulkaddworkitems.png" />
+    <EmbeddedResource Include="Resources\jf_bulkaddworkitems.png">
+      <LogicalName>OpenRPA.Resources.jf_bulkaddworkitems.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_businessrule.png" />
+    <EmbeddedResource Include="Resources\jf_businessrule.png">
+      <LogicalName>OpenRPA.Resources.jf_businessrule.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_closeapp.png" />
+    <EmbeddedResource Include="Resources\jf_closeapp.png">
+      <LogicalName>OpenRPA.Resources.jf_closeapp.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_commentout.png" />
+    <EmbeddedResource Include="Resources\jf_commentout.png">
+      <LogicalName>OpenRPA.Resources.jf_commentout.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_continue.png" />
+    <EmbeddedResource Include="Resources\jf_continue.png">
+      <LogicalName>OpenRPA.Resources.jf_continue.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_copyclipboard.png" />
+    <EmbeddedResource Include="Resources\jf_copyclipboard.png">
+      <LogicalName>OpenRPA.Resources.jf_copyclipboard.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_deleteworkitem.png" />
+    <EmbeddedResource Include="Resources\jf_deleteworkitem.png">
+      <LogicalName>OpenRPA.Resources.jf_deleteworkitem.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_detector.png" />
+    <EmbeddedResource Include="Resources\jf_detector.png">
+      <LogicalName>OpenRPA.Resources.jf_detector.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_dowhile.png" />
+    <EmbeddedResource Include="Resources\jf_dowhile.png">
+      <LogicalName>OpenRPA.Resources.jf_dowhile.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_foreachdatarow.png" />
+    <EmbeddedResource Include="Resources\jf_foreachdatarow.png">
+      <LogicalName>OpenRPA.Resources.jf_foreachdatarow.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_foreachof.png" />
+    <EmbeddedResource Include="Resources\jf_foreachof.png">
+      <LogicalName>OpenRPA.Resources.jf_foreachof.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_insertclipboard.png" />
+    <EmbeddedResource Include="Resources\jf_insertclipboard.png">
+      <LogicalName>OpenRPA.Resources.jf_insertclipboard.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_invokeopenflow.png" />
+    <EmbeddedResource Include="Resources\jf_invokeopenflow.png">
+      <LogicalName>OpenRPA.Resources.jf_invokeopenflow.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_invokeopenrpa.png" />
+    <EmbeddedResource Include="Resources\jf_invokeopenrpa.png">
+      <LogicalName>OpenRPA.Resources.jf_invokeopenrpa.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_invokeremote.png" />
+    <EmbeddedResource Include="Resources\jf_invokeremote.png">
+      <LogicalName>OpenRPA.Resources.jf_invokeremote.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_movemouse.png" />
+    <EmbeddedResource Include="Resources\jf_movemouse.png">
+      <LogicalName>OpenRPA.Resources.jf_movemouse.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_openapp.png" />
+    <EmbeddedResource Include="Resources\jf_openapp.png">
+      <LogicalName>OpenRPA.Resources.jf_openapp.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_popworkitem.png" />
+    <EmbeddedResource Include="Resources\jf_popworkitem.png">
+      <LogicalName>OpenRPA.Resources.jf_popworkitem.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_stopopenrpa.png" />
+    <EmbeddedResource Include="Resources\jf_stopopenrpa.png">
+      <LogicalName>OpenRPA.Resources.jf_stopopenrpa.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_updateworkitem.png" />
+    <EmbeddedResource Include="Resources\jf_updateworkitem.png">
+      <LogicalName>OpenRPA.Resources.jf_updateworkitem.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_while.png" />
+    <EmbeddedResource Include="Resources\jf_while.png">
+      <LogicalName>OpenRPA.Resources.jf_while.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_workflowinstance.png" />
+    <EmbeddedResource Include="Resources\jf_workflowinstance.png">
+      <LogicalName>OpenRPA.Resources.jf_workflowinstance.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\JakForge\tools\assign.png" />
+    <Resource Include="Resources\JakForge\tools\collection.png" />
+    <Resource Include="Resources\JakForge\tools\database.png" />
+    <Resource Include="Resources\JakForge\tools\flow.png" />
+    <Resource Include="Resources\JakForge\tools\foreach.png" />
+    <Resource Include="Resources\JakForge\tools\form.png" />
+    <Resource Include="Resources\JakForge\tools\if.png" />
+    <Resource Include="Resources\JakForge\tools\image.png" />
+    <Resource Include="Resources\JakForge\tools\java.png" />
+    <Resource Include="Resources\JakForge\tools\office.png" />
+    <Resource Include="Resources\JakForge\tools\openflow.png" />
+    <Resource Include="Resources\JakForge\tools\parallel.png" />
+    <Resource Include="Resources\JakForge\tools\pick.png" />
+    <Resource Include="Resources\JakForge\tools\recorder.png" />
+    <Resource Include="Resources\JakForge\tools\rossum.png" />
+    <Resource Include="Resources\JakForge\tools\script.png" />
+    <Resource Include="Resources\JakForge\tools\sequence.png" />
+    <Resource Include="Resources\JakForge\tools\speech.png" />
+    <Resource Include="Resources\JakForge\tools\state.png" />
+    <Resource Include="Resources\JakForge\tools\switch.png" />
+    <Resource Include="Resources\JakForge\tools\terminate.png" />
+    <Resource Include="Resources\JakForge\tools\throw.png" />
+    <Resource Include="Resources\JakForge\tools\trycatch.png" />
+    <Resource Include="Resources\JakForge\tools\while.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\JakForge\ribbon\Breakpoint.png" />
+    <Resource Include="Resources\JakForge\ribbon\Continue.png" />
+    <Resource Include="Resources\JakForge\ribbon\Copy.png" />
+    <Resource Include="Resources\JakForge\ribbon\Cut.png" />
+    <Resource Include="Resources\JakForge\ribbon\Delete.png" />
+    <Resource Include="Resources\JakForge\ribbon\Detectors.png" />
+    <Resource Include="Resources\JakForge\ribbon\Exit.png" />
+    <Resource Include="Resources\JakForge\ribbon\Explorer.png" />
+    <Resource Include="Resources\JakForge\ribbon\Export.png" />
+    <Resource Include="Resources\JakForge\ribbon\Import.png" />
+    <Resource Include="Resources\JakForge\ribbon\Logging.png" />
+    <Resource Include="Resources\JakForge\ribbon\Logs.png" />
+    <Resource Include="Resources\JakForge\ribbon\New.png" />
+    <Resource Include="Resources\JakForge\ribbon\Appearance.png" />
+    <Resource Include="Resources\JakForge\ribbon\Open.png" />
+    <Resource Include="Resources\JakForge\ribbon\OpenChrome.png" />
+    <Resource Include="Resources\JakForge\ribbon\OpenEdge.png" />
+    <Resource Include="Resources\JakForge\ribbon\OpenFirefox.png" />
+    <Resource Include="Resources\JakForge\ribbon\Paste.png" />
+    <Resource Include="Resources\JakForge\ribbon\Permissions.png" />
+    <Resource Include="Resources\JakForge\ribbon\Play.png" />
+    <Resource Include="Resources\JakForge\ribbon\Plugins.png" />
+    <Resource Include="Resources\JakForge\ribbon\Queues.png" />
+    <Resource Include="Resources\JakForge\ribbon\Record.png" />
+    <Resource Include="Resources\JakForge\ribbon\Redo.png" />
+    <Resource Include="Resources\JakForge\ribbon\Reload.png" />
+    <Resource Include="Resources\JakForge\ribbon\Save.png" />
+    <Resource Include="Resources\JakForge\ribbon\Signout.png" />
+    <Resource Include="Resources\JakForge\ribbon\Step.png" />
+    <Resource Include="Resources\JakForge\ribbon\Stop.png" />
+    <Resource Include="Resources\JakForge\ribbon\Template.png" />
+    <Resource Include="Resources\JakForge\ribbon\Undo.png" />
+    <Resource Include="Resources\JakForge\ribbon\picture_in_picture.png" />
+    <Resource Include="Resources\JakForge\ribbon\swap.png" />
+  </ItemGroup>
 </Project>

@@ -1,13 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Studio Automation Bridge",
-  "version": "0.11.0",
-  "description": "Batch 5-11: auto-connect, selector dinamis+XPath, retry timeout, screenshot elemen (mirip UiPath).",
+  "version": "0.12.0",
+  "description": "Indicate on screen, UI Explorer, interaksi elemen, dan tab management untuk Studio.",
+
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAs3QJ4PWjDbgjeLMYicQG2/VCmJaZzTLZ1sZ+JRc3+49qNy2LN7Dgi16PNv62H517d8WfjxobkcC+mNsM4CXFOtbI57RKTgXY9/HK3qpqkewuD/CqVt80hqoOae4EmlG6mu4IrwbyR4vcoci2/rflVIEV06sXQLPIpI6gg3ioPSg9ENqrL85YdvjDpVnHrZbwcd9bhcLXgP04mGqqBmnzTRNtYQZUJ3YnSiH1PYGNNT3Yj08kdL3GXwwvy6grUsbBKVZbZFy0fgeLwMh9NgNJJKAhl99Fj3ZSJ3iHsbOqZZx2DtSHCW1MTc85t2SDrG/ck7UW3mCg33DI0Ada1CnUPwIDAQAB",
 
   "permissions": [
     "nativeMessaging",
     "tabs",
-    "scripting"
+    "scripting",
+    "alarms"
   ],
 
   "host_permissions": [

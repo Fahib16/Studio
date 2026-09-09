@@ -143,6 +143,21 @@ namespace OpenRPA
                 var AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 var AppDataOpenRPA = System.IO.Path.Combine(AppData, "OpenRPA");
 
+                // Mode portabel: setelan ada di folder data di sebelah program,
+                // dan tidak ada tempat lain yang dilirik.
+                //
+                // Diperiksa PALING DULU dan mengembalikan langsung, supaya
+                // pembacaan dan penulisan menunjuk berkas yang sama. Sebelum
+                // ini keduanya bisa berbeda: SettingsFile mencari di beberapa
+                // tempat sementara Save() selalu menulis ke ProjectsDirectory —
+                // jadi setelan bisa dibaca dari satu berkas lalu disimpan ke
+                // berkas lain, dan yang terlihat adalah perubahan yang "tidak
+                // tersimpan" padahal tersimpan, di tempat yang tidak dibaca.
+                if (Extensions.IsPortable)
+                {
+                    return System.IO.Path.Combine(Extensions.ProjectsDirectory, "settings.json");
+                }
+
                 if (System.IO.File.Exists(System.IO.Path.Combine(AppDataOpenRPA, "settings.json")))
                 {
                     filename = System.IO.Path.Combine(Extensions.ProjectsDirectory, "settings.json");
@@ -174,6 +189,7 @@ namespace OpenRPA
                     try
                     {
                         string filename = SettingsFile;
+                        SemaikanSetelanBawaan(filename);
                         _local = new Config();
                         if (System.IO.File.Exists(filename))
                         {
@@ -199,6 +215,54 @@ namespace OpenRPA
                 return _local;
             }
         }
+        /// <summary>
+        /// Nama berkas benih setelan, diletakkan di sebelah program.
+        ///
+        /// Isinya sama dengan settings.json biasa. Bedanya cuma kapan dipakai:
+        /// hanya kalau BELUM ADA setelan sama sekali.
+        /// </summary>
+        public const string BerkasBenih = "settings.default.json";
+
+        /// <summary>
+        /// Salin setelan bawaan kalau mesin ini belum punya setelan apa pun.
+        ///
+        /// Gunanya: memasang Studio di komputer baru tidak menuntut siapa pun
+        /// menyetel ulang belasan pilihan yang sudah benar di komputer lama.
+        /// Berkas benihnya ikut di dalam proyek, jadi ia berpindah bersama
+        /// kodenya.
+        ///
+        /// Hanya berlaku sekali. Begitu settings.json ada — dibuat dari benih
+        /// atau oleh pemakainya sendiri — berkas benih tidak pernah dilirik
+        /// lagi. Menimpanya setiap kali program dijalankan akan membuang
+        /// perubahan yang baru saja dibuat orang, dan itu kerusakan yang jauh
+        /// lebih menyebalkan daripada menyetel sekali.
+        /// </summary>
+        private static void SemaikanSetelanBawaan(string tujuan)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(tujuan)) return;
+                if (System.IO.File.Exists(tujuan)) return;
+
+                var benih = System.IO.Path.Combine(Extensions.ProgramDirectory, BerkasBenih);
+                if (!System.IO.File.Exists(benih)) return;
+
+                var folder = System.IO.Path.GetDirectoryName(tujuan);
+                if (!string.IsNullOrEmpty(folder) && !System.IO.Directory.Exists(folder))
+                    System.IO.Directory.CreateDirectory(folder);
+
+                System.IO.File.Copy(benih, tujuan);
+                Log.Information("Setelan bawaan disalin dari " + benih + " ke " + tujuan + ".");
+            }
+            catch (Exception ex)
+            {
+                // Setelan bawaan yang gagal disalin BUKAN alasan untuk tidak
+                // menjalankan Studio: yang terjadi kemudian hanyalah pemakainya
+                // menyetel sendiri, persis seperti sebelum ada fitur ini.
+                Log.Error("Gagal menyalin setelan bawaan: " + ex.Message);
+            }
+        }
+
         public static void Save()
         {
             try

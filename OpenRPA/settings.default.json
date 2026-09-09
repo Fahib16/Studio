@@ -1,0 +1,126 @@
+{
+  "_keterangan": [
+    "Setelan bawaan JakForge Studio.",
+    "",
+    "Berkas ini DISALIN sekali ke folder data saat Studio dijalankan di mesin",
+    "yang belum punya settings.json — supaya memasang di komputer baru tidak",
+    "menuntut siapa pun menyetel ulang belasan pilihan yang sudah benar di",
+    "komputer lama.",
+    "",
+    "Sesudah salinannya ada, berkas ini tidak pernah dilirik lagi. Menimpanya",
+    "tiap kali program jalan akan membuang perubahan yang baru saja dibuat.",
+    "",
+    "Yang SENGAJA TIDAK ada di sini: jwt, password, entropy, username,",
+    "mainwindow_position, designerlayout, dan lastupdatecheck. Semuanya milik",
+    "satu mesin atau satu orang; menyalinnya ke komputer lain paling ringan",
+    "membuat jendelanya muncul di luar layar, dan paling berat membawa",
+    "kredensial ke tempat yang tidak seharusnya."
+  ],
+
+  "wsurl": "",
+  "username": "",
+
+  "use_virtual_click": true,
+  "use_sendkeys": false,
+  "use_postwait": "00:00:00",
+  "use_animate_mouse": false,
+  "move_animation_steps": 20,
+  "move_animation_run_time": "00:00:00.5000000",
+
+  "cancelkey": "{ESCAPE}",
+  "ocrlanguage": "eng",
+  "culture": "",
+
+  "minimize": true,
+  "minimize_to_tray": true,
+  "recording_add_to_designer": true,
+  "record_overlay": true,
+
+  "log_output": true,
+  "log_information": true,
+  "log_warning": true,
+  "log_error": true,
+  "log_debug": false,
+  "log_verbose": false,
+  "log_selector": false,
+  "log_selector_verbose": false,
+  "log_network": false,
+  "log_activity": false,
+  "log_busy_warning": true,
+  "log_to_file": false,
+  "log_file_level_minimum": 2,
+  "log_file_level_maximum": 5,
+  "max_output_lines": 250,
+  "max_trace_lines": 250,
+
+  "notify_on_workflow_end": true,
+  "notify_on_workflow_remote_start": true,
+  "notify_on_workflow_remote_end": false,
+
+  "remote_allowed": true,
+  "remote_allow_multiple_running": false,
+  "remote_allow_multiple_running_max": 2,
+
+  "reloadinterval": "00:05:00",
+  "querypagesize": 50,
+  "thread_lock_timeout_seconds": 10,
+  "thread_exit_on_lock_timeout": false,
+  "skip_online_state": false,
+  "skip_child_session_check": false,
+  "restore_dependencies_on_startup": false,
+  "disable_instance_store": false,
+
+  "doupdatecheck": false,
+  "autoupdateupdater": false,
+  "updatecheckinterval": "1.00:00:00",
+  "enable_analytics": false,
+
+  "otel_trace_url": "",
+  "otel_metric_url": "",
+  "otel_log_url": "",
+  "openflow_uniqueid": "",
+  "getting_started_url": "",
+  "cef_useragent": "",
+  "files_pending_deletion": [],
+
+  "properties": {
+    "IE_enable_xpath_support": true,
+
+    "NM_wait_for_tab_after_set_value": false,
+    "NM_wait_for_tab_click": false,
+    "NM_compensate_for_old_addon": false,
+    "NM_debug_console_output": false,
+    "NM_unique_xpath_ids": [
+      "ng-model",
+      "ng-reflect-name",
+      "data-control-name"
+    ],
+    "NM_protocol_timeout": "00:00:10",
+    "NM_wait_for_tab_timeout": "00:00:00.0010000",
+
+    "Office_get_emails_max_folders": 50,
+    "Office_get_emails_skip_public": true,
+
+    "Script_csharp_intellisense": true,
+    "Script_vb_intellisense": true,
+    "Script_use_embedded_python": true,
+    "Script_py_create_no_window": true,
+
+    "Windows_allow_attach": true,
+    "Windows_cache_timeout": "00:05:00",
+    "Windows_enable_cache": true,
+    "Windows_allow_multiple_hits_mid_selector": false,
+    "Windows_enum_selector_properties": false,
+    "Windows_get_elements_in_different_thread": true,
+    "Windows_search_timeout": "00:00:05",
+    "Windows_traverse_selector_both_ways": true,
+    "Windows_enable_windows_detector": true,
+
+    "StorageFileSystem_strict": false,
+    "StorageFileSystem_enabled": false,
+    "StorageLiteDB_enabled": false,
+    "StorageProjectFolders_strict": true,
+    "StorageProjectFolders_enabled": true,
+    "avirecorder_enabled": false
+  }
+}

@@ -267,3 +267,18 @@ __pycache__/
 .scannerwork
 sonar-scanner.properties
 sonar-project.properties
+
+# --- Portabilitas JakForge ---
+
+# Data mesin dalam mode portabel: workflow, tata letak, catatan.
+# Isinya milik komputer tempat Studio dipasang, bukan bagian dari kodenya.
+jakforge-data/
+portable.txt
+
+# Kunci privat ekstensi Chrome.
+#
+# Yang dibutuhkan agar ID ekstensi tetap sama di semua mesin adalah kunci
+# PUBLIK, dan itu sudah ada di dalam Extension/manifest.json. Kunci privat
+# hanya diperlukan kalau nanti ekstensinya dipaketkan menjadi .crx —
+# simpan di tempat lain, jangan di repositori.
+Extension/kunci-privat.pem

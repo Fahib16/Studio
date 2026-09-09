@@ -324,12 +324,77 @@ namespace OpenRPA.Interfaces
                 return dir;
             }
         }
+        /// <summary>
+        /// Folder tempat program ini berada.
+        ///
+        /// Dipakai untuk mode portabel dan untuk mencari berkas benih setelan.
+        /// </summary>
+        public static string ProgramDirectory
+        {
+            get
+            {
+                return System.IO.Path.GetDirectoryName(
+                    System.Reflection.Assembly.GetEntryAssembly() != null
+                        ? System.Reflection.Assembly.GetEntryAssembly().Location
+                        : System.Reflection.Assembly.GetExecutingAssembly().Location);
+            }
+        }
+
+        /// <summary>
+        /// Nama berkas penanda mode portabel.
+        ///
+        /// Kalau berkas ini ada di sebelah program, SELURUH data — setelan,
+        /// basis data offline, tata letak, catatan — pindah ke folder
+        /// "jakforge-data" di sebelahnya, bukan ke Documents.
+        ///
+        /// Gunanya satu: menyalin folder programnya berarti menyalin seluruh
+        /// pemasangannya. Tidak ada lagi "sudah dipasang tapi kosong karena
+        /// datanya tertinggal di Documents komputer lama".
+        /// </summary>
+        public const string PortableMarker = "portable.txt";
+
+        /// <summary>Benar kalau program ini berjalan dalam mode portabel.</summary>
+        public static bool IsPortable
+        {
+            get
+            {
+                try
+                {
+                    var dir = ProgramDirectory;
+                    if (string.IsNullOrEmpty(dir)) return false;
+
+                    return System.IO.File.Exists(System.IO.Path.Combine(dir, PortableMarker));
+                }
+                catch (Exception)
+                {
+                    // Program yang gagal menentukan letaknya sendiri tetap harus
+                    // bisa jalan; yang hilang cuma mode portabelnya.
+                    return false;
+                }
+            }
+        }
+
         private static string _ProjectsDirectory = null;
         public static string ProjectsDirectory
         {
             get
             {
                 if (!string.IsNullOrEmpty(_ProjectsDirectory)) return _ProjectsDirectory;
+
+                // Mode portabel diperiksa PALING DULU. Kalau penandanya ada,
+                // Documents tidak dilirik sama sekali — bukan dijadikan
+                // cadangan, karena "kadang di sini kadang di sana" adalah
+                // perilaku yang tidak bisa dijelaskan kepada siapa pun.
+                if (IsPortable)
+                {
+                    _ProjectsDirectory = System.IO.Path.Combine(ProgramDirectory, "jakforge-data");
+
+                    if (!System.IO.Directory.Exists(_ProjectsDirectory))
+                        System.IO.Directory.CreateDirectory(_ProjectsDirectory);
+
+                    return _ProjectsDirectory;
+                }
+
                 var MyDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 var MyDocumentsOpenRPA = System.IO.Path.Combine(MyDocuments, "OpenRPA");
                 var AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
