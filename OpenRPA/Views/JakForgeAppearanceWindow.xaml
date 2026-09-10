@@ -1,0 +1,59 @@
+<!--
+    Tingginya MENGIKUTI ISINYA, bukan angka tetap.
+
+    Versi pertama memakai Height="330" dan tombol Simpan/Batal jatuh di bawah
+    tepi jendela: tidak terlihat, jadi tidak ada cara menerapkan pilihannya.
+    Angka tetap juga akan memotong lagi begitu bahasanya diganti, karena
+    panjang keterangannya berbeda-beda antar bahasa.
+-->
+<Window x:Class="OpenRPA.Views.JakForgeAppearanceWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tampilan" Width="440"
+        SizeToContent="Height"
+        MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource JF.Cream}"
+        FontFamily="{StaticResource JF.FontBody}">
+
+    <Border Padding="22" Background="{DynamicResource JF.Cream}">
+        <StackPanel>
+
+            <TextBlock x:Name="TxtTitle" Text="Tampilan"
+                       FontSize="19" FontWeight="Bold"
+                       Foreground="{DynamicResource JF.Brown900}" />
+
+            <TextBlock x:Name="TxtLead"
+                       Text="Setelan ini dipakai bersama Studio dan JakRunner."
+                       Margin="0,4,0,18" TextWrapping="Wrap"
+                       Foreground="{DynamicResource JF.TextMuted}" />
+
+            <TextBlock x:Name="TxtLang" Text="Bahasa" FontWeight="SemiBold"
+                       Margin="0,0,0,6" Foreground="{DynamicResource JF.Brown700}" />
+
+            <ComboBox x:Name="CmbLang" Height="30" Padding="8,0"
+                      Background="{DynamicResource JF.Surface}"
+                      BorderBrush="{DynamicResource JF.Border}" />
+
+            <TextBlock x:Name="TxtTheme" Text="Tema" FontWeight="SemiBold"
+                       Margin="0,16,0,6" Foreground="{DynamicResource JF.Brown700}" />
+
+            <ComboBox x:Name="CmbTheme" Height="30" Padding="8,0"
+                      Background="{DynamicResource JF.Surface}"
+                      BorderBrush="{DynamicResource JF.Border}" />
+
+            <TextBlock x:Name="TxtNote" Margin="0,16,0,0" TextWrapping="Wrap"
+                       FontSize="11" Foreground="{DynamicResource JF.TextMuted}"
+                       Text="Mode gelap berlaku untuk layar JakForge: layar mulai, daftar proyek, panel Output, dan kanvas. Jendela bawaan OpenRPA tetap terang." />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">
+                <Button x:Name="BtnCancel" Content="Batal" Width="90" Height="32"
+                        Margin="0,0,8,0" Click="BtnCancel_Click" />
+                <Button x:Name="BtnSave" Content="Simpan" Width="110" Height="32"
+                        Style="{StaticResource JF.PrimaryButton}" Click="BtnSave_Click" />
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+</Window>

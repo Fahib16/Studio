@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 namespace OpenRPA.NM
 {
     [System.ComponentModel.Designer(typeof(ExecuteScriptDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ExecuteScript), "Resources.toolbox.executescript.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
     [LocalizedToolboxTooltip("activity_executescript_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_executescript", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_executescript_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_executescript.png")]
     public class ExecuteScript : NativeActivity
     {
         [RequiredArgument]

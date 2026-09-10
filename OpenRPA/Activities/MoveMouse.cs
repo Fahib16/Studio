@@ -13,10 +13,10 @@ using System.Runtime.InteropServices;
 namespace OpenRPA.Activities
 {
     [Designer(typeof(MoveMouseDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.mouse.png")]
     [LocalizedToolboxTooltip("activity_movemouse_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_movemouse", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_movemouse_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_movemouse.png")]
     public class MoveMouse : CodeActivity
     {
         public MoveMouse()

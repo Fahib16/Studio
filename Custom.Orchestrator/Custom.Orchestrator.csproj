@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <!--
+    Kategori toolbox "Orchestrator": activity yang menghubungkan workflow ke
+    ForgeHub, plus Invoke Workflow milik JakForge sendiri.
+
+    Proyek ini SENGAJA tidak merujuk OpenRPA maupun OpenRPA.Interfaces. Activity
+    di sini harus bisa berjalan di Studio DAN di JakRunner, dan JakRunner
+    dirancang untuk berdiri sendiri tanpa membawa serta seluruh Studio.
+  -->
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3C7A9E14-5B62-4D08-9F31-A7E4C2B60D95}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Custom.Orchestrator</RootNamespace>
+    <AssemblyName>Custom.Orchestrator</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.Activities.Presentation" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Activities\AssetActivities.cs" />
+    <Compile Include="Activities\InvokeWorkflow.cs" />
+    <Compile Include="Activities\QueueActivities.cs" />
+    <Compile Include="Activities\AddQueueItemDesigner.xaml.cs">
+      <DependentUpon>AddQueueItemDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GetAssetDesigner.xaml.cs">
+      <DependentUpon>GetAssetDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GetCredentialDesigner.xaml.cs">
+      <DependentUpon>GetCredentialDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GetQueueItemDesigner.xaml.cs">
+      <DependentUpon>GetQueueItemDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\InvokeWorkflowDesigner.xaml.cs">
+      <DependentUpon>InvokeWorkflowDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\SetQueueItemStatusDesigner.xaml.cs">
+      <DependentUpon>SetQueueItemStatusDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\WriteRobotLogDesigner.xaml.cs">
+      <DependentUpon>WriteRobotLogDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GetJobInfo.cs" />
+    <Compile Include="Activities\GetJobInfoDesigner.xaml.cs">
+      <DependentUpon>GetJobInfoDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Runtime\HubConnection.cs" />
+    <Compile Include="Runtime\QueueItem.cs" />
+    <Compile Include="Runtime\WorkflowContext.cs" />
+    <Compile Include="Resources\ResFinder.cs" />
+    <Compile Include="Activities\StartJob.cs" />
+    <Compile Include="Activities\StartJobDesigner.xaml.cs">
+      <DependentUpon>StartJobDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Activities\StartJobDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GetJobInfoDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\AddQueueItemDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GetAssetDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GetCredentialDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GetQueueItemDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\InvokeWorkflowDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\SetQueueItemStatusDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WriteRobotLogDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <!--
+    LogicalName wajib disebut satu per satu: ToolboxBitmapAttribute mencari
+    gambarnya lewat nama resource yang persis, bukan lewat nama berkas.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\startjob.png"><LogicalName>Custom.Orchestrator.Resources.startjob.png</LogicalName></EmbeddedResource>
+    <Resource Include="Resources\startjob.png" />
+    <Resource Include="Resources\getjobinfo.png">
+      <LogicalName>Custom.Orchestrator.Resources.getjobinfo.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\addqueueitem.png">
+      <LogicalName>Custom.Orchestrator.Resources.addqueueitem.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\getasset.png">
+      <LogicalName>Custom.Orchestrator.Resources.getasset.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\getcredential.png">
+      <LogicalName>Custom.Orchestrator.Resources.getcredential.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\getqueueitem.png">
+      <LogicalName>Custom.Orchestrator.Resources.getqueueitem.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\invokeworkflow.png">
+      <LogicalName>Custom.Orchestrator.Resources.invokeworkflow.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\setqueueitemstatus.png">
+      <LogicalName>Custom.Orchestrator.Resources.setqueueitemstatus.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\writerobotlog.png">
+      <LogicalName>Custom.Orchestrator.Resources.writerobotlog.png</LogicalName>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- RobotLog dan PathDesignerBase. Custom.Shared tidak merujuk apa pun. -->
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.WinFx.targets" Condition="'$(TargetFrameworkVersion)' == 'v3.0'" />
+</Project>

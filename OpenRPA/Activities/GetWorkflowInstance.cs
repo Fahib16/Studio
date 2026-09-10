@@ -14,10 +14,10 @@ using System.Threading.Tasks;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(GetWorkflowInstanceDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.getworkflowinstance.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
     [LocalizedToolboxTooltip("activity_getworkflowinstance_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_getworkflowinstance", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_workflowinstance.png")]
     public class GetWorkflowInstance : NativeActivity
     {
         public InArgument<string> Browser { get; set; }

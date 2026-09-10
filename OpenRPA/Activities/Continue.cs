@@ -15,10 +15,10 @@ using System.Windows;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(ContinueDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.continue.png")]
     [LocalizedToolboxTooltip("activity_continue_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_continue", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_continue_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_continue.png")]
     public class Continue : NativeActivity
     {
         protected override void Execute(NativeActivityContext context)

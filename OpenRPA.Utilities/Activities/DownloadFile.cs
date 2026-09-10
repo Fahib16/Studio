@@ -14,8 +14,8 @@ using System.Runtime.InteropServices;
 namespace OpenRPA.Utilities
 {
     [System.ComponentModel.Designer(typeof(DownloadFileDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.downloadfile.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_downloadfile.png")]
     public class DownloadFile : AsyncTaskCodeActivity
     {
         [RequiredArgument]

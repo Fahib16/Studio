@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net462</TargetFramework>
+		<Product>OpenRPA</Product>
+		<Description>OpenRPA project-folder storage provider (UiPath-like layout)</Description>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<Version>1.0.0</Version>
+		<Configurations>Debug;Release;ReleaseNuget;PrepInstaller</Configurations>
+		<PackageTags>OpenRPA</PackageTags>
+		<Platforms>AnyCPU;x86</Platforms>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<OutputPath>..\debug</OutputPath>
+		<PlatformTarget>x64</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+		<OutputPath>..\debug86</OutputPath>
+		<PlatformTarget>x64</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<OutputPath>..\dist</OutputPath>
+		<Optimize>False</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+		<OutputPath>..\dist</OutputPath>
+		<Optimize>False</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PrepInstaller|AnyCPU'">
+		<OutputPath></OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PrepInstaller|x86'">
+		<OutputPath />
+	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj" />
+	</ItemGroup>
+</Project>

@@ -13,10 +13,10 @@ using OpenRPA.Interfaces.entity;
 namespace OpenRPA.WorkItems
 {
     [System.ComponentModel.Designer(typeof(AddWorkitemDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.addworkitem.png")]
     [LocalizedToolboxTooltip("activity_addworkitem_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_addworkitem", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_addworkitem_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_addworkitem.png")]
     public class AddWorkitem : AsyncTaskCodeActivity
     {
         public AddWorkitem()

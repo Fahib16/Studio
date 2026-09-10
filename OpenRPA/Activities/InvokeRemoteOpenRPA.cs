@@ -13,10 +13,10 @@ using Newtonsoft.Json.Linq;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(InvokeRemoteOpenRPADesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.invokeremoterpaworkflow.png")]
     [LocalizedToolboxTooltip("activity_invokeremoteopenrpa_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_invokeremoteopenrpa", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_invokeremoteopenrpa_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_invokeremote.png")]
     public class InvokeRemoteOpenRPA : NativeActivity
     {
         public InvokeRemoteOpenRPA()

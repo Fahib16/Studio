@@ -448,7 +448,7 @@ namespace OpenRPA
                 });
                 if (!string.IsNullOrEmpty(_id) && global.isConnected)
                 {
-                    var imagepath = System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "images");
+                    var imagepath = System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "images");
                     if (!System.IO.Directory.Exists(imagepath)) System.IO.Directory.CreateDirectory(imagepath);
                     var files = await global.webSocketClient.Query<metadataitem>("files", "{\"metadata.workflow\": \"" + _id + "\"}");
                     foreach (var f in files)

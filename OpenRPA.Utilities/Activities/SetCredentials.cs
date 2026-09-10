@@ -14,8 +14,8 @@ using Newtonsoft.Json.Linq;
 namespace OpenRPA.Utilities
 {
     [System.ComponentModel.Designer(typeof(SetCredentialsDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.setcredentials.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_setcredentials.png")]
     public sealed class SetCredentials : CodeActivity
     {
         [RequiredArgument]

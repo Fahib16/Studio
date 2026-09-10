@@ -84,6 +84,14 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="4.0.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" Version="4.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.2.0" />
+    <!-- Disamakan dengan OpenRPA, yang meminta 4.5.0 (versi rakitan 4.0.3.0).
+         Roslyn menariknya secara transitif di 4.4.0 (rakitan 4.0.2.0), dan
+         karena seluruh proyek menyalin ke SATU folder keluaran, yang menyalin
+         terakhir menentukan versi yang benar-benar dipakai. Berkas config sudah
+         mengalihkan semuanya ke 4.0.3.0, jadi begitu yang mendarat 4.0.2.0
+         pemuatannya gagal dengan "manifest definition does not match".
+         Penyakit yang sama pernah terjadi pada Newtonsoft.Json 13.0.2/13.0.4. -->
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Resources\CodeEditorResources.xaml" />

@@ -1,0 +1,21 @@
+<Application x:Class="JakRunner.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="Views/RunnerWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--
+                    Palet TERANG dimuat lebih dulu sebagai bawaan. Kalau setelan
+                    bersama meminta gelap, RunnerTheming menukarnya saat program
+                    mulai — menukar SATU kamus, bukan menyusun ulang semuanya.
+
+                    Urutannya penting: paletnya harus sebelum RunnerTheme,
+                    karena gaya di sana merujuk kuas-kuas ini.
+                -->
+                <ResourceDictionary Source="/JakRunner;component/Views/RunnerPalette.Light.xaml" />
+                <ResourceDictionary Source="/JakRunner;component/Views/RunnerTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

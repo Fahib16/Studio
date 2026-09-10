@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(ForEachDataRowDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.foreach.png")]
     [System.Windows.Markup.ContentProperty("Body")]
     [LocalizedToolboxTooltip("activity_foreachdatarow_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_foreachdatarow", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_foreachdatarow_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_foreachdatarow.png")]
     public class ForEachDataRow : BreakableLoop, System.Activities.Presentation.IActivityTemplateFactory
     {
         [RequiredArgument, Category("Input"), OverloadGroup("DataTable"), LocalizedDisplayName("activity_datatable", typeof(Resources.strings)), LocalizedDescription("activity_datatable_help", typeof(Resources.strings))]

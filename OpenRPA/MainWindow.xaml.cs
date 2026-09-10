@@ -40,6 +40,13 @@ namespace OpenRPA
         System.Timers.Timer statetimer = null;
         public MainWindow()
         {
+            // Jendela ini harus SHOW supaya Window_Loaded jalan dan seluruh
+            // penyiapan Studio (toolbox, layout, plugin) terjadi. Tetapi belum
+            // boleh terlihat, karena yang mestinya muncul lebih dulu adalah
+            // layar Home. Transparan penuh dulu, lalu di akhir Window_Loaded
+            // disembunyikan sungguhan.
+            Opacity = 0;
+
             statetimer = new System.Timers.Timer(200);
             statetimer.Elapsed += Statetimer_Elapsed;
             statetimer.Start();
@@ -51,7 +58,7 @@ namespace OpenRPA
             InitializeComponent();
             try
             {
-                if (System.IO.File.Exists(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "Snippets.dll"))) System.IO.File.Delete(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "Snippets.dll"));
+                if (System.IO.File.Exists(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "Snippets.dll"))) System.IO.File.Delete(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "Snippets.dll"));
                 if (System.IO.File.Exists("Snippets.dll")) System.IO.File.Delete("Snippets.dll");
             }
             catch (Exception)
@@ -99,6 +106,29 @@ namespace OpenRPA
             {
                 SetStatus("Registering Designer Metadata");
                 new DesignerMetadata().Register();
+                RegisterJakForgeDesigners();
+
+                // Saluran log robot: activity Orchestrator menulis ke sana, dan
+                // di Studio isinya muncul di panel Output — sama seperti di
+                // JakRunner isinya muncul di panel log. Satu activity, dua
+                // penampung, tanpa activity-nya perlu tahu sedang di mana.
+                Custom.Shared.RobotLog.Written += entry =>
+                {
+                    var category =
+                        entry.Level == Custom.Shared.RobotLogLevel.Error ? "Error" :
+                        entry.Level == Custom.Shared.RobotLogLevel.Warning ? "Warning" : "Output";
+
+                    Views.JakForgeOutputFeed.Add(entry.Time, category, entry.Message);
+                };
+
+                // Bahasa antarmuka. Diterapkan SEKARANG, sesudah XAML selesai
+                // dimuat, dan diterapkan lagi setiap kali setelannya berubah —
+                // termasuk kalau yang mengubahnya JakRunner, karena keduanya
+                // membaca berkas setelan yang sama.
+                TerjemahkanAntarmuka();
+                Custom.Shared.JakForgeUi.Changed += () =>
+                    Dispatcher.BeginInvoke(new Action(TerjemahkanAntarmuka));
+
                 var pos = Config.local.mainwindow_position;
                 if (pos.Left > 0 && pos.Top > 0 && pos.Width > 100 && pos.Height > 100)
                 {
@@ -136,6 +166,23 @@ namespace OpenRPA
                 Log.Error(ex.ToString());
                 throw;
             }
+
+            // Jendela kanvas sudah selesai dimuat, tetapi belum boleh terlihat:
+            // sesudah layar Loading yang muncul hanya layar Home, dan kanvas
+            // baru tampil begitu ada proyek dibuka atau dibuat.
+            Opacity = 1;
+
+            Views.JakForgeLoadingWindow.HandOverTo(this);
+            Views.JakForgeShell.ShowHome();
+
+            // Menyembunyikannya HARUS ditunda satu putaran dispatcher.
+            // Window.Show() menetapkan Visibility=Visible SESUDAH memicu
+            // Loaded, jadi kalau disembunyikan langsung di sini, penetapan itu
+            // menimpanya dan kanvas tetap muncul bersama layar Home.
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!Views.JakForgeShell.CanvasShown) Hide();
+            }), System.Windows.Threading.DispatcherPriority.Background);
             Log.FunctionOutdent("MainWindow", "Window_Loaded");
         }
         internal static MainWindow instance;
@@ -304,9 +351,9 @@ namespace OpenRPA
                     Config.Save();
                     try
                     {
-                        if (System.IO.File.Exists(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "layout.config")))
+                        if (System.IO.File.Exists(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "layout.config")))
                         {
-                            System.IO.File.Delete(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "layout.config"));
+                            System.IO.File.Delete(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "layout.config"));
                         }
                         SkipLayoutSaving = true;
                         //System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(Config.local.culture);
@@ -439,21 +486,58 @@ namespace OpenRPA
             Application.Current.Shutdown();
             Log.FunctionOutdent("MainWindow", "Window_Closed");
         }
+        /// <summary>
+        /// Meminimalkan jendela Studio kini berhenti di taskbar, TIDAK lagi
+        /// menyembunyikan jendela ke system tray.
+        ///
+        /// Perilaku lama (sembunyikan lalu tampilkan ikon tray) membuat jendela
+        /// hilang dari taskbar, sehingga satu-satunya cara kembali adalah lewat
+        /// ikon kecil di pojok layar. Untuk aplikasi yang dipakai berjam-jam
+        /// sambil berpindah jendela, itu menghalangi, bukan menolong.
+        ///
+        /// Pengaturan <c>Config.local.minimize_to_tray</c> karena itu tidak lagi
+        /// berpengaruh pada jendela ini. Ikon tray sendiri tetap ada dan tetap
+        /// dipakai mode Assistant (AgentWindow).
+        /// </summary>
         private void Window_StateChanged(object sender, EventArgs e)
         {
-            Log.FunctionIndent("MainWindow", "Window_StateChanged");
-            if (!Config.local.minimize_to_tray) return;
-            if (WindowState == WindowState.Minimized)
+            // TIDAK memaksa Visibility di sini. Saat memuat, jendela ini
+            // mengembalikan keadaan tersimpannya (mis. maximized) dan itu
+            // memicu StateChanged; memaksa Visible di situ membuat kanvas
+            // menyembul padahal yang seharusnya tampil lebih dulu layar Home.
+            ApplyMaximizedPadding();
+        }
+
+        /// <summary>
+        /// Memberi jarak isi jendela saat dimaksimalkan.
+        ///
+        /// Jendela tanpa bilah judul bawaan (WindowStyle=None + WindowChrome)
+        /// dibesarkan Windows sampai MELEBIHI layar sebesar tebal bingkai
+        /// ubah-ukuran di tiap sisi. Tanpa penyeimbang, tulisan di panel kiri
+        /// dan tab di panel bawah menempel persis di tepi layar — persis yang
+        /// terlihat saat Studio dimaksimalkan.
+        ///
+        /// Angkanya dibaca dari SystemParameters, bukan ditulis mati, supaya
+        /// tetap benar pada penskalaan layar yang berbeda.
+        /// </summary>
+        private void ApplyMaximizedPadding()
+        {
+            var root = Content as System.Windows.FrameworkElement;
+            if (root == null) return;
+
+            if (WindowState == WindowState.Maximized)
             {
-                Visibility = Visibility.Hidden;
-                App.notifyIcon.Visible = true;
+                var x = SystemParameters.ResizeFrameVerticalBorderWidth +
+                        SystemParameters.FixedFrameVerticalBorderWidth;
+                var y = SystemParameters.ResizeFrameHorizontalBorderHeight +
+                        SystemParameters.FixedFrameHorizontalBorderHeight;
+
+                root.Margin = new Thickness(Math.Max(x, 6), Math.Max(y, 6), Math.Max(x, 6), Math.Max(y, 6));
             }
             else
             {
-                Visibility = Visibility.Visible;
-                // App.notifyIcon.Visible = false;
+                root.Margin = new Thickness(0);
             }
-            Log.FunctionOutdent("MainWindow", "Window_StateChanged");
         }
         public void SetStatus(string message)
         {
@@ -492,7 +576,732 @@ namespace OpenRPA
             NotifyPropertyChanged("SelectedContent");
             NotifyPropertyChanged("CurrentWorkflow");
             NotifyPropertyChanged("LastDesigner");
+            UpdateProjectHeader();
         }
+
+        /// <summary>
+        /// Mengganti designer bawaan untuk activity milik .NET yang tampilannya
+        /// tidak bisa diubah dari sisi kita.
+        ///
+        /// Sequence adalah wadah paling sering dipakai di kanvas, dan bentuk
+        /// bawaannya (kotak abu-abu biru Visual Studio) tidak nyambung dengan
+        /// kartu activity JakForge. Penggantinya juga yang membawa tombol "+"
+        /// penyisip antar-activity.
+        ///
+        /// Pendaftaran harus SESUDAH DesignerMetadata().Register(), karena
+        /// entri yang didaftarkan belakangan yang dipakai.
+        /// </summary>
+        private void RegisterJakForgeDesigners()
+        {
+            try
+            {
+                var builder = new System.Activities.Presentation.Metadata.AttributeTableBuilder();
+                builder.AddCustomAttributes(typeof(System.Activities.Statements.Sequence),
+                    new System.ComponentModel.DesignerAttribute(typeof(Views.JakForgeSequenceDesigner)));
+                System.Activities.Presentation.Metadata.MetadataStore.AddAttributeTable(builder.CreateTable());
+            }
+            catch (Exception ex)
+            {
+                Log.Error("RegisterJakForgeDesigners: " + ex.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Transisi masuk kanvas.
+        ///
+        /// Yang dianimasikan BUKAN opasitas isi jendela, melainkan selembar
+        /// tirai polos yang ditaruh di atasnya lalu dipudarkan. Bedanya besar:
+        /// menganimasikan opasitas isi jendela memaksa WPF menggambar ulang
+        /// SELURUH pohon visual — pita, AvalonDock, dan kanvas WF Designer —
+        /// enam puluh kali per detik, dan itulah yang membuat perpindahannya
+        /// tersendat. Tirai polos cuma satu bentuk, digabung di kartu grafis,
+        /// dan biayanya nyaris nol.
+        /// </summary>
+        public void JakForgeFadeInContent()
+        {
+            try
+            {
+                var root = Content as System.Windows.Controls.Grid;
+                if (root == null) return;
+
+                var curtain = new System.Windows.Shapes.Rectangle
+                {
+                    Fill = TryFindResource("JF.Surface") as System.Windows.Media.Brush
+                           ?? System.Windows.Media.Brushes.White,
+                    IsHitTestVisible = false,
+                    Opacity = 1,
+                };
+
+                System.Windows.Controls.Grid.SetRow(curtain, 0);
+                System.Windows.Controls.Grid.SetRowSpan(curtain, root.RowDefinitions.Count > 0 ? root.RowDefinitions.Count : 1);
+                System.Windows.Controls.Panel.SetZIndex(curtain, int.MaxValue);
+
+                root.Children.Add(curtain);
+
+                var fade = new System.Windows.Media.Animation.DoubleAnimation
+                {
+                    From = 1,
+                    To = 0,
+                    Duration = TimeSpan.FromMilliseconds(220),
+                    EasingFunction = new System.Windows.Media.Animation.QuadraticEase
+                    {
+                        EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut
+                    }
+                };
+
+                fade.Completed += (s, e) =>
+                {
+                    try { root.Children.Remove(curtain); } catch (Exception) { }
+                };
+
+                curtain.BeginAnimation(OpacityProperty, fade);
+            }
+            catch (Exception ex)
+            {
+                Log.Debug("JakForgeFadeInContent: " + ex.Message);
+            }
+        }
+
+        #region Bilah JakForge
+
+        private string _projectHeader = "";
+
+        /// <summary>
+        /// Nama proyek yang ditampilkan di bilah JakForge. Diisi ulang setiap
+        /// dokumen aktif berganti, jadi isinya selalu proyek milik workflow
+        /// yang sedang dilihat, bukan proyek yang kebetulan dibuka terakhir.
+        /// </summary>
+        public string ProjectHeader
+        {
+            get { return _projectHeader; }
+            set
+            {
+                if (_projectHeader == value) return;
+                _projectHeader = value;
+                NotifyPropertyChanged("ProjectHeader");
+            }
+        }
+
+        private void UpdateProjectHeader()
+        {
+            try
+            {
+                var designer = ResolveDesigner();
+                if (designer != null && designer.Workflow != null)
+                {
+                    var project = designer.Workflow.Project();
+                    ProjectHeader = project != null ? project.name : designer.Workflow.name;
+                    return;
+                }
+                ProjectHeader = "";
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+                ProjectHeader = "";
+            }
+        }
+
+        /// <summary>
+        /// Kembali ke layar Home. Kanvas hanya disembunyikan, jadi
+        /// workflow yang sedang dibuka tetap terbuka apa adanya.
+        /// </summary>
+        private void JF_Home_Click(object sender, RoutedEventArgs e)
+        {
+            Views.JakForgeShell.ShowHome();
+        }
+
+        private void JF_Close_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void JF_Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void JF_Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        /// <summary>
+        /// Run/Debug: menjalankan workflow dengan penelusuran menyala, yaitu
+        /// activity yang sedang berjalan disorot di kanvas.
+        /// </summary>
+        private void JF_Run_Click(object sender, RoutedEventArgs e)
+        {
+            StartRun(withTracking: true);
+        }
+
+        /// <summary>
+        /// Run: menjalankan workflow apa adanya, tanpa penelusuran dan tanpa
+        /// gerak lambat — jadi secepat mungkin.
+        ///
+        /// Sebelumnya tombol ini memakai PlayInChildCommand, dan itulah sebabnya
+        /// ia diam saja saat diklik: perintah tersebut hanya bisa dijalankan
+        /// kalau ada sesi anak yang aktif (CanPlayInChild memeriksa
+        /// OpenRPAServiceUtil.RemoteInstance), yang pada pemakaian biasa memang
+        /// tidak ada.
+        /// </summary>
+        private void JF_RunChild_Click(object sender, RoutedEventArgs e)
+        {
+            StartRun(withTracking: false);
+        }
+
+        /// <summary>
+        /// Kanvas yang jadi sasaran tombol Run dan tombol-tombol pita.
+        ///
+        /// SelectedContent adalah isi panel yang TERAKHIR MENDAPAT FOKUS di
+        /// dalam docking manager. Begitu user mengklik Toolbox, Properties,
+        /// atau panel Project, isinya bukan lagi kanvas — dan semua yang
+        /// bergantung padanya (Run, Step, Continue, nama proyek di header)
+        /// berhenti bekerja tanpa pesan apa pun. Itulah sebabnya tombol Run
+        /// terasa mati: workflow-nya jelas terbuka, tapi yang sedang berfokus
+        /// bukan kanvasnya.
+        ///
+        /// Pencariannya bertingkat: yang sedang fokus, lalu kanvas terakhir
+        /// yang dipakai (asal tab-nya masih terbuka), lalu tab dokumen yang
+        /// sedang terpilih, lalu — kalau memang cuma ada satu — kanvas itu.
+        /// </summary>
+        private Views.WFDesigner ResolveDesigner()
+        {
+            if (SelectedContent is Views.WFDesigner focused) return focused;
+            if (DManager == null) return null;
+
+            var documents = DManager.Layout.Descendents()
+                .OfType<Xceed.Wpf.AvalonDock.Layout.LayoutDocument>().ToList();
+            var designers = documents.Select(d => d.Content).OfType<Views.WFDesigner>().ToList();
+            if (designers.Count == 0) return null;
+
+            // _LastDesigner dibaca LANGSUNG, bukan lewat properti LastDesigner:
+            // getter properti itu justru mengosongkannya begitu panel Open
+            // project yang berfokus — persis keadaan yang mau ditangani di sini.
+            if (_LastDesigner != null && designers.Contains(_LastDesigner)) return _LastDesigner;
+
+            var selected = documents.FirstOrDefault(d => d.IsSelected);
+            if (selected != null && selected.Content is Views.WFDesigner fromTab) return fromTab;
+
+            return designers.Count == 1 ? designers[0] : null;
+        }
+
+        /// <summary>
+        /// Jadikan tab kanvas ini yang aktif, supaya penelusuran menyorot di
+        /// kanvas yang terlihat dan perintah lain yang membaca SelectedContent
+        /// menunjuk ke workflow yang sama.
+        /// </summary>
+        private void FocusDesigner(Views.WFDesigner designer)
+        {
+            if (designer == null || DManager == null) return;
+
+            try
+            {
+                var document = DManager.Layout.Descendents()
+                    .OfType<Xceed.Wpf.AvalonDock.Layout.LayoutDocument>()
+                    .FirstOrDefault(d => ReferenceEquals(d.Content, designer));
+                if (document == null) return;
+
+                document.IsSelected = true;
+                document.IsActive = true;
+            }
+            catch (Exception ex) { Log.Error(ex.ToString()); }
+        }
+
+        private async void StartRun(bool withTracking)
+        {
+            try
+            {
+                var designer = ResolveDesigner();
+                if (designer == null)
+                {
+                    Log.Output("Tidak ada workflow yang bisa dijalankan. Buka sebuah workflow lebih dulu.");
+                    return;
+                }
+
+                FocusDesigner(designer);
+
+                if (isRecording)
+                {
+                    Log.Output("Sedang merekam — hentikan rekaman dulu sebelum menjalankan workflow.");
+                    return;
+                }
+
+                if (designer.IsRunnning && !designer.BreakPointhit)
+                {
+                    Log.Output("Workflow ini masih berjalan.");
+                    return;
+                }
+
+                // Disetel LANGSUNG ke designer-nya. Properti VisualTracking dan
+                // SlowMotion milik window diam-diam tidak mengerjakan apa pun
+                // kalau SelectedContent bukan kanvas — keadaan yang justru
+                // sering terjadi saat tombol Run ditekan dari header.
+                designer.VisualTracking = withTracking;
+                if (!withTracking) designer.SlowMotion = false;
+                NotifyPropertyChanged("VisualTracking");
+                NotifyPropertyChanged("SlowMotion");
+
+                if (designer.HasChanged) await designer.SaveAsync();
+
+                // Panel Output dikosongkan tiap jalan, supaya yang terlihat
+                // hanya hasil jalan ini. Salinannya tetap tersimpan di
+                // %LOCALAPPDATA%\JakForge\Logs\<tanggal>.txt, jadi jejak jalan
+                // sebelumnya tidak ikut hilang.
+                Views.JakForgeOutputFeed.Clear();
+                Views.JakForgeLogFile.BeginRun(designer.Workflow != null ? designer.Workflow.name : "(workflow)",
+                                               withTracking);
+                Log.Output((withTracking ? "Debug" : "Run") + " dimulai: " +
+                           (designer.Workflow != null ? designer.Workflow.name : "(workflow)"));
+
+
+                // Dijalankan langsung lewat designer-nya, tidak lewat OnPlay:
+                // OnPlay membaca SelectedContent lagi, jadi ia akan berhenti di
+                // tempat yang sama kalau fokusnya ternyata belum pindah.
+                designer.Run(designer.VisualTracking, designer.SlowMotion, null);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("JakForge run: " + ex.ToString());
+                MessageBox.Show(ex.Message, "Run", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        #region Tab Design dan Debug
+
+        /// <summary>
+        /// Designer yang sedang aktif, atau null kalau yang terbuka bukan
+        /// kanvas workflow.
+        /// </summary>
+        private Views.WFDesigner ActiveDesigner
+        {
+            get { return ResolveDesigner(); }
+        }
+
+        private void RunOn(System.Windows.Input.RoutedUICommand command)
+        {
+            var designer = ActiveDesigner;
+            if (designer == null || designer.WorkflowDesigner == null) return;
+
+            var target = designer.WorkflowDesigner.View as IInputElement;
+            if (target == null) return;
+
+            try
+            {
+                target.Focus();
+                if (command.CanExecute(null, target)) command.Execute(null, target);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("JakForge edit: " + ex.Message);
+            }
+        }
+
+        private void JF_Design_New(object sender, RoutedEventArgs e)
+        {
+            if (NewWorkflowCommand.CanExecute(null)) NewWorkflowCommand.Execute(null);
+        }
+
+        private void JF_Design_Save(object sender, RoutedEventArgs e)
+        {
+            if (SaveCommand.CanExecute(SelectedContent)) SaveCommand.Execute(SelectedContent);
+        }
+
+        private void JF_Design_Export(object sender, RoutedEventArgs e)
+        {
+            if (ExportCommand.CanExecute(SelectedContent)) ExportCommand.Execute(SelectedContent);
+        }
+
+        private void JF_Design_Packages(object sender, RoutedEventArgs e)
+        {
+            if (ManagePackagesCommand.CanExecute(null)) ManagePackagesCommand.Execute(null);
+        }
+
+        private void JF_Design_Record(object sender, RoutedEventArgs e)
+        {
+            if (RecordCommand.CanExecute(SelectedContent)) RecordCommand.Execute(SelectedContent);
+        }
+
+        private void JF_Design_Detectors(object sender, RoutedEventArgs e)
+        {
+            if (DetectorsCommand.CanExecute(null)) DetectorsCommand.Execute(null);
+        }
+
+        /// <summary>
+        /// UI Explorer: memakai penjelajah elemen dan editor selector JakForge
+        /// yang sudah ada, bukan jendela baru. Hasilnya disalin ke papan klip
+        /// supaya bisa langsung ditempel ke properti Selector activity mana pun.
+        /// </summary>
+        private void JF_Design_UiExplorer(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var result = Custom.StudioBridge.Design.IndicateHelper.EditSelector("");
+                if (result == null || string.IsNullOrEmpty(result.Selector)) return;
+
+                Clipboard.SetText(result.Selector);
+                Log.Output("Selector disalin ke papan klip: " + result.Selector);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("JakForge UI Explorer: " + ex.ToString());
+            }
+        }
+
+        private void JF_Edit_Cut(object sender, RoutedEventArgs e) { RunOn(System.Windows.Input.ApplicationCommands.Cut); }
+        private void JF_Edit_Copy(object sender, RoutedEventArgs e) { RunOn(System.Windows.Input.ApplicationCommands.Copy); }
+        private void JF_Edit_Paste(object sender, RoutedEventArgs e) { RunOn(System.Windows.Input.ApplicationCommands.Paste); }
+        private void JF_Edit_Undo(object sender, RoutedEventArgs e) { RunOn(System.Windows.Input.ApplicationCommands.Undo); }
+        private void JF_Edit_Redo(object sender, RoutedEventArgs e) { RunOn(System.Windows.Input.ApplicationCommands.Redo); }
+
+        private void JF_Debug_Start(object sender, RoutedEventArgs e)
+        {
+            StartRun(withTracking: true);
+        }
+
+        private void JF_Debug_Restart(object sender, RoutedEventArgs e)
+        {
+            JF_Stop_Click(sender, e);
+            StartRun(withTracking: true);
+        }
+
+        /// <summary>
+        /// Step: menjalankan satu activity lalu berhenti lagi.
+        ///
+        /// OpenRPA hanya punya SATU bentuk langkah (Singlestep), tidak
+        /// membedakan Step Into, Over, dan Out seperti UiPath. Karena itu di
+        /// sini hanya ada satu tombol, bukan tiga tombol yang dua di antaranya
+        /// mengerjakan hal yang sama.
+        /// </summary>
+        private void JF_Debug_Step(object sender, RoutedEventArgs e)
+        {
+            var designer = ActiveDesigner;
+            if (designer == null) return;
+
+            designer.Singlestep = true;
+
+            if (designer.BreakPointhit && designer.ResumeRuntimeFromHost != null)
+            {
+                designer.ResumeRuntimeFromHost.Set();
+                return;
+            }
+
+            StartRun(withTracking: true);
+        }
+
+        private void JF_Debug_Continue(object sender, RoutedEventArgs e)
+        {
+            var designer = ActiveDesigner;
+            if (designer == null) return;
+
+            designer.Singlestep = false;
+            if (designer.ResumeRuntimeFromHost != null) designer.ResumeRuntimeFromHost.Set();
+        }
+
+        private void JF_Debug_Breakpoint(object sender, RoutedEventArgs e)
+        {
+            var designer = ActiveDesigner;
+            if (designer == null) return;
+
+            try { designer.ToggleBreakpoint(); }
+            catch (Exception ex) { Log.Error("JakForge breakpoint: " + ex.Message); }
+        }
+
+        private void JF_Debug_Trail(object sender, RoutedEventArgs e)
+        {
+            var box = sender as System.Windows.Controls.Ribbon.RibbonCheckBox;
+            if (box == null) return;
+
+            if (Designer == null) { box.IsChecked = false; return; }
+            VisualTracking = box.IsChecked == true;
+        }
+
+        private void JF_Debug_SlowStep(object sender, RoutedEventArgs e)
+        {
+            var box = sender as System.Windows.Controls.Ribbon.RibbonCheckBox;
+            if (box == null) return;
+
+            if (Designer == null) { box.IsChecked = false; return; }
+            SlowMotion = box.IsChecked == true;
+        }
+
+        private void JF_Debug_OpenLogs(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var pane = DManager.Layout.Descendents()
+                    .OfType<Xceed.Wpf.AvalonDock.Layout.LayoutAnchorable>()
+                    .FirstOrDefault(x => x.ContentId == "Output");
+
+                if (pane == null) return;
+
+                if (pane.IsAutoHidden) pane.ToggleAutoHide();
+                pane.IsSelected = true;
+                pane.IsActive = true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("JakForge logs: " + ex.Message);
+            }
+        }
+
+        // --- Dipakai panel Debug (Views.JakForgeDebugView) ---
+        //
+        // Panel itu UserControl biasa, jadi ia tidak bisa memanggil handler
+        // privat di sini. Yang dibuka hanya empat tindakan yang memang ada
+        // tombolnya, bukan seluruh isi jendela.
+
+        public Views.WFDesigner JakForgeDesigner() { return ResolveDesigner(); }
+        public void JakForgeDebugContinue() { JF_Debug_Continue(this, null); }
+        public void JakForgeDebugStep() { JF_Debug_Step(this, null); }
+        public void JakForgeDebugStop() { JF_Stop_Click(this, null); }
+        public void JakForgeDebugToggleBreakpoint() { JF_Debug_Breakpoint(this, null); }
+
+        #endregion
+
+        private void JF_Stop_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Kanvasnya diaktifkan dulu: StopCommand pun membaca
+                // SelectedContent, bukan parameter yang dikirim.
+                FocusDesigner(ResolveDesigner());
+
+                var command = StopCommand;
+                if (command != null && command.CanExecute(SelectedContent)) command.Execute(SelectedContent);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("JakForge stop: " + ex.ToString());
+            }
+        }
+
+        private void JF_VisualTracking_Click(object sender, RoutedEventArgs e)
+        {
+            var item = sender as System.Windows.Controls.MenuItem;
+            if (item == null) return;
+
+            if (Designer == null) { item.IsChecked = false; return; }
+            VisualTracking = item.IsChecked;
+        }
+
+        private void JF_SlowMotion_Click(object sender, RoutedEventArgs e)
+        {
+            var item = sender as System.Windows.Controls.MenuItem;
+            if (item == null) return;
+
+            if (Designer == null) { item.IsChecked = false; return; }
+            SlowMotion = item.IsChecked;
+        }
+
+
+        /// <summary>
+        /// Menu "Run": jalan biasa — tanpa penelusuran dan tanpa gerak lambat.
+        /// Sama dengan tombol Run di header.
+        /// </summary>
+        /// <summary>
+        /// Buka pemilih bahasa dan tema.
+        ///
+        /// Setelannya dipakai bersama JakRunner, jadi mengubahnya di sini juga
+        /// mengubah tampilan asisten pada saat ia berikutnya memeriksa.
+        /// </summary>
+        /// <summary>
+        /// Terapkan bahasa antarmuka ke bilah header, pita, dan judul panel dok.
+        ///
+        /// Yang TIDAK disentuh adalah kanvas dan daftar dokumen, dan itu
+        /// disengaja: nama workflow dan nama activity di sana adalah isi buatan
+        /// pengguna. Activity bernama "Save" tidak boleh berubah menjadi
+        /// "Simpan" hanya karena bahasa antarmukanya diganti.
+        ///
+        /// Aman dipanggil berulang kali: penerjemahnya mencari balik dari teks
+        /// bahasa apa pun, jadi menerjemahkan yang sudah diterjemahkan
+        /// menghasilkan hal yang sama.
+        /// </summary>
+        private void TerjemahkanAntarmuka()
+        {
+            try
+            {
+                Views.JakForgeUiText.Apply(JfHeaderBar);
+                Views.JakForgeUiText.Apply(MainRibbon);
+
+                if (SearchBox != null)
+                {
+                    var petunjuk = SearchBox.Placeholder as string;
+                    if (petunjuk != null) SearchBox.Placeholder = Views.JakForgeUiText.T(petunjuk);
+                }
+
+                // Judul panel dok TIDAK ada di pohon logis: LayoutAnchorable
+                // adalah objek model AvalonDock, bukan kontrol. Jadi diambil
+                // dari layout-nya, bukan dari penelusuran pohon.
+                //
+                // Hanya LayoutAnchorable — LayoutDocument sengaja dilewat,
+                // karena judulnya adalah nama berkas workflow milik pengguna.
+                if (DManager != null && DManager.Layout != null)
+                {
+                    foreach (var panel in DManager.Layout.Descendents()
+                                 .OfType<Xceed.Wpf.AvalonDock.Layout.LayoutAnchorable>())
+                    {
+                        panel.Title = Views.JakForgeUiText.T(panel.Title);
+                    }
+                }
+
+                if (LabelStatusBar != null)
+                {
+                    var keadaan = LabelStatusBar.Content as string;
+                    if (keadaan != null) LabelStatusBar.Content = Views.JakForgeUiText.T(keadaan);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Bahasa antarmuka tidak boleh menghalangi Studio terbuka.
+                Log.Error("Terjemahan antarmuka: " + ex.Message);
+            }
+        }
+
+        private void JF_MenuAppearance_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var jendela = new Views.JakForgeAppearanceWindow { Owner = this };
+                jendela.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Tampilan: " + ex.Message);
+            }
+        }
+
+        private void JF_MenuRun_Click(object sender, RoutedEventArgs e)
+        {
+            StartRun(withTracking: false);
+        }
+
+        /// <summary>
+        /// Menu "Debug": jalan dengan penelusuran — activity yang sedang
+        /// berjalan disorot di kanvas. Gerak lambat ikut kalau dicentang.
+        /// </summary>
+        private void JF_MenuDebug_Click(object sender, RoutedEventArgs e)
+        {
+            StartRun(withTracking: true);
+        }
+
+        private void JF_RunMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as System.Windows.Controls.Button;
+            if (button == null || button.ContextMenu == null) return;
+
+            // Centang Slow Motion disamakan dengan keadaan designer yang sedang
+            // aktif setiap menu dibuka, karena tiap workflow punya setelannya
+            // sendiri.
+            var designer = ResolveDesigner();
+            if (MenuSlowMotion != null) MenuSlowMotion.IsChecked = designer != null && designer.SlowMotion;
+
+            button.ContextMenu.PlacementTarget = button;
+            button.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            button.ContextMenu.IsOpen = true;
+        }
+
+        /// <summary>
+        /// Pita OpenRPA disembunyikan supaya bilah atas sama dengan rancangan,
+        /// tetapi TIDAK dihapus: semua perintah lain (New, Open, Import,
+        /// Export, Permissions, Record, dan seterusnya) masih di sana dan
+        /// tombol ini yang membukanya.
+        /// </summary>
+
+        #region Tab HOME / DESIGN / DEBUG di kepala jendela
+
+        /// <summary>
+        /// Buka pita pada tab Design. Menekan tab yang sedang aktif menutup
+        /// pitanya lagi — persis perilaku pita UiPath Studio.
+        /// </summary>
+        private void JF_TabDesign_Click(object sender, RoutedEventArgs e)
+        {
+            ShowRibbonTab(tabDesign, TabDesign);
+        }
+
+        private void JF_TabDebug_Click(object sender, RoutedEventArgs e)
+        {
+            ShowRibbonTab(tabDebug, TabDebug);
+        }
+
+        private void ShowRibbonTab(System.Windows.Controls.Ribbon.RibbonTab tab, System.Windows.Controls.Button chip)
+        {
+            if (MainRibbon == null || tab == null) return;
+
+            var alreadyOpen = MainRibbon.Visibility == Visibility.Visible
+                              && ReferenceEquals(MainRibbon.SelectedItem, tab);
+
+            if (alreadyOpen)
+            {
+                MainRibbon.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                MainRibbon.Visibility = Visibility.Visible;
+                MainRibbon.SelectedItem = tab;
+            }
+
+            MarkActiveTab(MainRibbon.Visibility == Visibility.Visible ? chip : null);
+
+            // Dibuka lewat tab kepala: baris tab bawaan pita disembunyikan
+            // supaya tidak ada dua baris tab yang isinya sama.
+            Dispatcher.BeginInvoke(new Action(() => SetRibbonTabStrip(false)),
+                System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+
+
+        /// <summary>
+        /// Sembunyikan atau tampilkan baris tab bawaan milik kontrol Ribbon.
+        ///
+        /// Saat pita dibuka lewat tab DESIGN/DEBUG di kepala jendela, baris tab
+        /// bawaannya jadi baris KEDUA yang isinya sama — persis hal yang tidak
+        /// ada di UiPath. Saat dibuka lewat tombol hamburger, baris itu justru
+        /// dibutuhkan: di sanalah tab General, Settings, dan Tools bisa dicapai.
+        ///
+        /// Kontrolnya dicari lewat pohon visual karena WPF Ribbon tidak
+        /// menyediakan properti untuk ini.
+        /// </summary>
+        private void SetRibbonTabStrip(bool visible)
+        {
+            try
+            {
+                var strip = FindDescendant<System.Windows.Controls.Ribbon.RibbonTabHeaderItemsControl>(MainRibbon);
+                if (strip != null) strip.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch (Exception) { }
+        }
+
+        private static T FindDescendant<T>(DependencyObject node) where T : DependencyObject
+        {
+            if (node == null) return null;
+
+            var count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(node);
+            for (var i = 0; i < count; i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(node, i);
+
+                var hit = child as T;
+                if (hit != null) return hit;
+
+                var deeper = FindDescendant<T>(child);
+                if (deeper != null) return deeper;
+            }
+            return null;
+        }
+
+        /// <summary>Tandai tab mana yang sedang aktif; null berarti tidak ada.</summary>
+        private void MarkActiveTab(System.Windows.Controls.Button active)
+        {
+            if (TabDesign != null) TabDesign.Tag = ReferenceEquals(TabDesign, active) ? "on" : null;
+            if (TabDebug != null) TabDebug.Tag = ReferenceEquals(TabDebug, active) ? "on" : null;
+        }
+
+        #endregion
+
+
+
+        #endregion
+
         public object SelectedContent
         {
             get
@@ -891,6 +1700,9 @@ namespace OpenRPA
         public ICommand ImportCommand { get { return new RelayCommand<object>(OnImport, CanImport); } }
         public ICommand ExportCommand { get { return new RelayCommand<object>(OnExport, CanExport); } }
         public ICommand PermissionsCommand { get { return new RelayCommand<object>(OnPermissions, CanPermissions); } }
+        public ICommand ForgeHubConnectCommand { get { return new RelayCommand<object>(OnForgeHubConnect, CanAllways); } }
+        public ICommand ForgeHubPublishCommand { get { return new RelayCommand<object>(OnForgeHubPublish, CanForgeHubPublish); } }
+        public ICommand ForgeHubOpenCommand { get { return new RelayCommand<object>(OnForgeHubOpen, CanAllways); } }
         public ICommand ReloadCommand { get { return new RelayCommand<object>(OnReload, (e) => true); } }
         public ICommand LinkOpenFlowCommand { get { return new RelayCommand<object>(OnlinkOpenFlow, CanlinkOpenFlow); } }
         public ICommand LinkNodeREDCommand { get { return new RelayCommand<object>(OnlinkNodeRED, CanlinkNodeRED); } }
@@ -1428,6 +2240,180 @@ namespace OpenRPA
             }
             Log.FunctionOutdent("MainWindow", "OnImport");
         }
+        // ------------------------------------------------------------------
+        // ForgeHub
+        //
+        // Studio menerbitkan proyek ke ForgeHub dan bisa menyuruhnya menjalankan
+        // proses. Studio TIDAK berdenyut dan tidak mengambil pekerjaan — itu
+        // tugas JakRunner. Seluruh bagian ini opsional: tanpa ForgeHub, Studio
+        // bekerja persis seperti sebelumnya.
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Proyek yang akan diterbitkan: milik designer yang sedang dibuka,
+        /// atau yang sedang dipilih di panel Proyek.
+        /// </summary>
+        private Project ForgeHubTargetProject()
+        {
+            try
+            {
+                if (SelectedContent is Views.WFDesigner designer)
+                {
+                    return designer.Workflow != null ? designer.Workflow.Project() as Project : null;
+                }
+
+                if (SelectedContent is Views.OpenProject open)
+                {
+                    if (open.listWorkflows.SelectedValue is Project project) return project;
+                    if (open.listWorkflows.SelectedValue is Workflow workflow) return workflow.Project() as Project;
+                }
+
+                // Panel Proyek JakForge: kalau hanya satu proyek yang terbuka,
+                // tidak ada yang perlu dipilih — itu jelas proyek yang dimaksud.
+                var all = RobotInstance.instance.Projects;
+                if (all != null && all.Count == 1) return all[0] as Project;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+            }
+
+            return null;
+        }
+
+        private bool CanForgeHubPublish(object _item)
+        {
+            try
+            {
+                return ForgeHubTargetProject() != null;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private void OnForgeHubConnect(object _item)
+        {
+            try
+            {
+                if (ForgeHub.ForgeHubDialog.ShowConnect(this))
+                {
+                    var client = ForgeHub.StudioForgeHubClient.Instance;
+
+                    Views.JakForgeOutputFeed.Add(DateTime.Now, "Information", "ForgeHub: tersambung ke " + client.Url + ".");
+
+                    ForgeHub.ForgeHubDialog.Info(this, "ForgeHub",
+                        "Tersambung ke " + client.Url + " sebagai " + client.Username + "."
+                        + Environment.NewLine + Environment.NewLine
+                        + "Sekarang tombol Terbitkan mengirim proyek yang sedang terbuka ke ForgeHub.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+                ForgeHub.ForgeHubDialog.Problem(this, "ForgeHub", ex.Message);
+            }
+        }
+
+        private void OnForgeHubPublish(object _item)
+        {
+            try
+            {
+                var client = ForgeHub.StudioForgeHubClient.Instance;
+
+                if (!client.IsConfigured)
+                {
+                    if (!ForgeHub.ForgeHubDialog.ShowConnect(this)) return;
+                }
+
+                var project = ForgeHubTargetProject();
+
+                if (project == null)
+                {
+                    ForgeHub.ForgeHubDialog.Problem(this, "ForgeHub",
+                        "Tidak ada proyek yang bisa diterbitkan. Buka sebuah workflow, "
+                        + "atau pilih proyeknya di panel Proyek.");
+                    return;
+                }
+
+                // Yang dikemas adalah berkas di DISK, jadi perubahan yang belum
+                // disimpan tidak akan ikut. Menyimpan lebih dulu menghindari
+                // menerbitkan versi lama tanpa sadar.
+                if (SelectedContent is Views.WFDesigner designer)
+                {
+                    try { designer.Save(); } catch (Exception ex) { Log.Error(ex.ToString()); }
+                }
+
+                // Project.Path menunjuk satu tingkat lebih dangkal daripada tempat
+                // penyimpanan folder-per-proyek benar-benar menaruh isinya
+                // (…\OpenRPA\offline\<nama>). Helper yang sama dipakai panel Project
+                // dan pembuatan dari template; menyalin logikanya ke sini berarti
+                // dua tempat yang harus diperbaiki bersamaan saat tata letaknya berubah.
+                var folder = Templates.ProjectTemplates.ProjectFolderOnDisk(project);
+
+                if (string.IsNullOrEmpty(folder))
+                {
+                    ForgeHub.ForgeHubDialog.Problem(this, "ForgeHub",
+                        "Folder proyek '" + project.name + "' tidak ditemukan di disk. "
+                        + "Simpan proyeknya dulu, lalu coba terbitkan lagi.");
+                    return;
+                }
+
+                Views.JakForgeOutputFeed.Add(DateTime.Now, "Information", "ForgeHub: mengemas dan menerbitkan " + project.name + "…");
+
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+
+                string result;
+                try
+                {
+                    // Versinya DIHITUNG, bukan dipatok. Sebelumnya selalu "1.0.0",
+                    // sehingga tiap penerbitan menimpa versi yang sama dan
+                    // riwayatnya tidak pernah bertambah.
+                    var versi = client.NextVersion(project.name);
+
+                    result = client.PublishProject(folder, project.name, versi,
+                        "Diterbitkan dari JakForge Studio oleh " + Environment.UserName + ".");
+                }
+                finally
+                {
+                    Mouse.OverrideCursor = null;
+                }
+
+                Views.JakForgeOutputFeed.Add(DateTime.Now, "Information", "ForgeHub: " + result);
+                ForgeHub.ForgeHubDialog.Info(this, "ForgeHub", result);
+            }
+            catch (Exception ex)
+            {
+                Mouse.OverrideCursor = null;
+
+                Log.Error(ex.ToString());
+                Views.JakForgeOutputFeed.Add(DateTime.Now, "Error", "ForgeHub: penerbitan gagal — " + ex.Message);
+
+                ForgeHub.ForgeHubDialog.Problem(this, "Penerbitan gagal", ex.Message);
+            }
+        }
+
+        private void OnForgeHubOpen(object _item)
+        {
+            try
+            {
+                var client = ForgeHub.StudioForgeHubClient.Instance;
+
+                if (!client.IsConfigured)
+                {
+                    if (!ForgeHub.ForgeHubDialog.ShowConnect(this)) return;
+                }
+
+                System.Diagnostics.Process.Start(client.Url);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+                ForgeHub.ForgeHubDialog.Problem(this, "ForgeHub", ex.Message);
+            }
+        }
+
         internal bool CanExport(object _item)
         {
             try
@@ -1633,9 +2619,10 @@ namespace OpenRPA
         {
             try
             {
-                var filename = "settings.json";
-                var path = Interfaces.Extensions.ProjectsDirectory;
-                string settingsFile = System.IO.Path.Combine(path, filename);
+                // Config.SettingsFile, bukan jalur yang dirakit sendiri: menu
+                // ini harus membuka berkas yang BENAR-BENAR dibaca program,
+                // bukan berkas bernama sama di folder yang kebetulan diingat.
+                string settingsFile = Config.SettingsFile;
                 var process = new System.Diagnostics.Process
                 {
                     StartInfo = new System.Diagnostics.ProcessStartInfo()
@@ -1859,21 +2846,22 @@ namespace OpenRPA
                     var ld = DManager.Layout.Descendents().OfType<LayoutDocument>().ToList();
                     foreach (var document in ld)
                     {
-                        if (document.Content is Views.OpenProject op)
+                        if (document.Content is Views.JakForgeStartView)
                         {
-                            // document.IsSelected = true;
+                            document.IsSelected = true;
                             Log.FunctionOutdent("MainWindow", "OnOpen", "allready open");
                             return;
                         }
                     }
-                    var view = new Views.OpenProject(this);
-                    // view.onOpenProject += OnOpenProject;
-                    view.onOpenWorkflow += OnOpenWorkflow;
-                    view.onSelectedItemChanged += View_onSelectedItemChanged;
 
-                    LayoutDocument layoutDocument = new LayoutDocument { Title = "Open project" };
-                    layoutDocument.ContentId = "openproject";
-                    layoutDocument.CanClose = false;
+                    // Halaman awal, bukan lagi daftar proyek: daftarnya sudah
+                    // ada di panel Project, dan dua tempat yang menampilkan hal
+                    // yang sama hanya membuat orang bertanya mana yang benar.
+                    var view = new Views.JakForgeStartView();
+
+                    LayoutDocument layoutDocument = new LayoutDocument { Title = "Mulai" };
+                    layoutDocument.ContentId = "jakforgestart";
+                    layoutDocument.CanClose = true;
                     layoutDocument.Content = view;
                     MainTabControl.Children.Add(layoutDocument);
                     layoutDocument.IsSelected = true;
@@ -2149,7 +3137,7 @@ namespace OpenRPA
                 try
                 {
                     var serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(DManager);
-                    using (var stream = new System.IO.StreamWriter(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "layout.config")))
+                    using (var stream = new System.IO.StreamWriter(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "layout.config")))
                         serializer.Serialize(stream);
                 }
                 catch (Exception ex)
@@ -2164,6 +3152,140 @@ namespace OpenRPA
             }
             Log.FunctionOutdent("MainWindow", "SaveLayout");
         }
+        /// <summary>
+        /// Satu panel yang dideklarasikan di MainWindow.xaml, beserta ContentId
+        /// tetangga-tetangganya di panel yang sama.
+        ///
+        /// Tetangganya ikut dicatat supaya panel yang perlu dipulihkan bisa
+        /// diletakkan kembali DI TEMPAT YANG SAMA, tanpa perlu daftar posisi
+        /// yang ditulis manual dan gampang basi.
+        /// </summary>
+        private class DeclaredPane
+        {
+            public LayoutAnchorable Pane;
+            public List<string> Siblings = new List<string>();
+        }
+
+        private List<DeclaredPane> CaptureDeclaredPanes()
+        {
+            var result = new List<DeclaredPane>();
+            if (DManager == null) return result;
+
+            foreach (var pane in DManager.Layout.Descendents().OfType<LayoutAnchorable>().ToList())
+            {
+                if (string.IsNullOrEmpty(pane.ContentId)) continue;
+
+                var item = new DeclaredPane { Pane = pane };
+
+                if (pane.Parent is Xceed.Wpf.AvalonDock.Layout.ILayoutGroup group)
+                {
+                    foreach (var sibling in group.Children.OfType<LayoutAnchorable>())
+                    {
+                        if (ReferenceEquals(sibling, pane)) continue;
+                        if (!string.IsNullOrEmpty(sibling.ContentId)) item.Siblings.Add(sibling.ContentId);
+                    }
+                }
+
+                result.Add(item);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Kembalikan panel yang hilang setelah layout lama dibaca.
+        ///
+        /// XmlLayoutSerializer mengganti seluruh pohon layout dengan isi
+        /// berkas, jadi panel yang BARU ditambahkan di XAML — yang belum ada
+        /// saat layout terakhir disimpan — lenyap begitu saja, tanpa pesan.
+        /// Yang terlihat oleh user: panel yang sudah dibuat tidak pernah
+        /// muncul, dan menghapus layout.config jadi satu-satunya jalan.
+        ///
+        /// Di sini panel itu dipasang lagi di sebelah tetangga aslinya, dan
+        /// tata letak yang sudah diatur user tetap dipertahankan.
+        /// </summary>
+
+        /// <summary>
+        /// Buang dokumen yang sudah tidak ada lagi di Studio ini.
+        ///
+        /// layout.config menyimpan SETIAP tab yang pernah terbuka, termasuk tab
+        /// "Open project" yang kini digantikan halaman awal. Tanpa dibersihkan,
+        /// tab itu muncul kembali setiap Studio dibuka — kosong, tidak bisa
+        /// ditutup, dan tanpa penjelasan apa pun.
+        /// </summary>
+        private void RemoveRetiredDocuments()
+        {
+            if (DManager == null) return;
+
+            var retired = new[] { "openproject" };
+
+            try
+            {
+                var documents = DManager.Layout.Descendents().OfType<LayoutDocument>().ToList();
+
+                foreach (var document in documents)
+                {
+                    var id = document.ContentId ?? "";
+                    if (!retired.Contains(id, StringComparer.OrdinalIgnoreCase)) continue;
+
+                    document.CanClose = true;
+                    document.Close();
+
+                    Log.Debug("Tab lama dibuang dari layout: " + id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning("Gagal membersihkan tab lama: " + ex.Message);
+            }
+        }
+
+        private void RestoreDeclaredPanes(List<DeclaredPane> declared)
+        {
+            if (declared == null || declared.Count == 0 || DManager == null) return;
+
+            foreach (var item in declared)
+            {
+                try
+                {
+                    var current = DManager.Layout.Descendents().OfType<LayoutAnchorable>().ToList();
+                    if (current.Any(x => x.ContentId == item.Pane.ContentId)) continue;
+
+                    // Dilepas dari pohon LAMA dulu; tanpa ini panel masih
+                    // mengaku punya induk dan menolak dipasang di pohon baru.
+                    if (item.Pane.Parent is Xceed.Wpf.AvalonDock.Layout.ILayoutGroup old)
+                        old.RemoveChild(item.Pane);
+
+                    // Induknya bisa LayoutAnchorablePane (panel yang menempel
+                    // di sisi kiri/kanan) atau LayoutAnchorGroup (panel yang
+                    // tersembunyi otomatis di sisi bawah). Keduanya ILayoutGroup,
+                    // jadi penyisipannya lewat antarmuka itu — bukan lewat satu
+                    // tipe saja, yang akan melewatkan panel di sisi bawah.
+                    var host = current
+                        .Where(x => item.Siblings.Contains(x.ContentId))
+                        .Select(x => x.Parent as Xceed.Wpf.AvalonDock.Layout.ILayoutGroup)
+                        .FirstOrDefault(p => p != null);
+
+                    if (host != null)
+                    {
+                        host.InsertChildAt(host.ChildrenCount, item.Pane);
+                    }
+                    else
+                    {
+                        item.Pane.AddToLayout(DManager,
+                            Xceed.Wpf.AvalonDock.Layout.AnchorableShowStrategy.Left |
+                            Xceed.Wpf.AvalonDock.Layout.AnchorableShowStrategy.Most);
+                    }
+
+                    Log.Debug("Panel '" + item.Pane.ContentId + "' dipasang kembali: tidak ada di layout.config.");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("Gagal memasang kembali panel '" + item.Pane.ContentId + "': " + ex.Message);
+                }
+            }
+        }
+
         private void LoadLayout()
         {
             Log.FunctionIndent("MainWindow", "LoadLayout");
@@ -2174,11 +3296,18 @@ namespace OpenRPA
                     var fi = new System.IO.FileInfo("layout.config");
                     var di = fi.Directory;
 
-                    if (System.IO.File.Exists(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "layout.config")))
+                    // Panel yang dideklarasikan di XAML dicatat DULU. Membaca
+                    // layout.config akan mengganti seluruh pohon layout, dan
+                    // panel yang belum ada di berkas lama itu ikut hilang —
+                    // itulah sebabnya panel Project tidak pernah muncul di
+                    // Studio yang layout-nya sudah pernah tersimpan.
+                    var declared = CaptureDeclaredPanes();
+
+                    if (System.IO.File.Exists(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "layout.config")))
                     {
                         var ds = DManager.Layout.Descendents();
                         var serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(DManager);
-                        using (var stream = new System.IO.StreamReader(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "layout.config")))
+                        using (var stream = new System.IO.StreamReader(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "layout.config")))
                             serializer.Deserialize(stream);
                         ds = DManager.Layout.Descendents();
                     }
@@ -2218,6 +3347,18 @@ namespace OpenRPA
                         }
                     }
 
+                    RestoreDeclaredPanes(declared);
+                    RemoveRetiredDocuments();
+
+                    // Judul panel ikut tersimpan di layout.config, jadi tata
+                    // letak lama akan menimpa judul yang ditulis di XAML.
+                    // Karena itu penamaannya dipaksa ulang DI SINI, setelah
+                    // layout dimuat, memakai ContentId yang tidak pernah
+                    // berubah, bukan judulnya sendiri.
+                    foreach (var pane in DManager.Layout.Descendents().OfType<LayoutAnchorable>().ToList())
+                    {
+                        if (pane.ContentId == "Toolbox") pane.Title = "Aktivitas";
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -3652,7 +4793,7 @@ namespace OpenRPA
         private void TesseractLang_Click(object sender, RoutedEventArgs e)
         {
             Log.FunctionIndent("MainWindow", "TesseractLang_Click");
-            string path = System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "tessdata");
+            string path = System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "tessdata");
             TesseractDownloadLangFile(path, Config.local.ocrlanguage);
             System.Windows.MessageBox.Show("Download complete");
             Log.FunctionOutdent("MainWindow", "TesseractLang_Click");
@@ -3793,7 +4934,12 @@ namespace OpenRPA
         {
             if (e.Key == System.Windows.Input.Key.F && (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) == System.Windows.Input.ModifierKeys.Control)
             {
-                tabGeneral.IsSelected = true;
+                // Kotak pencarian sekarang tinggal di tab Design; pitanya
+                // dibuka dulu supaya kotaknya benar-benar terlihat saat difokuskan.
+                MainRibbon.Visibility = Visibility.Visible;
+                SetRibbonTabStrip(false);
+                MainRibbon.SelectedItem = tabDesign;
+                MarkActiveTab(TabDesign);
                 //searchTab.Focus();
                 SearchBox.Focus();
             }

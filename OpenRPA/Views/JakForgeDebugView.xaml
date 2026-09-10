@@ -1,0 +1,142 @@
+<UserControl x:Class="OpenRPA.Views.JakForgeDebugView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource JF.Surface}">
+
+    <!--
+        Panel Debug JakForge.
+
+        Isinya HANYA yang benar-benar bisa dibaca dari mesin workflow OpenRPA:
+        daftar jalannya workflow beserta keadaannya, nilai variabel yang
+        direkam WorkflowTrackingParticipant selama activity berjalan, dan pesan
+        kesalahan kalau jalannya gagal. Tombolnya menempel ke perintah yang
+        memang sudah ada (Continue, Step, Stop, Toggle Breakpoint) — tidak ada
+        tombol hiasan yang tidak mengerjakan apa pun.
+
+        Seperti panel Output, panel ini MENARIK datanya setiap setengah detik.
+        Berlangganan peristiwa dari mesin workflow berarti thread pekerja
+        menyentuh UI, dan itu sudah pernah membuat Studio berhenti di layar
+        Loading.
+    -->
+
+    <UserControl.Resources>
+        <Style x:Key="DebugButton" TargetType="Button">
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+            <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="7" Padding="10,4" Background="Transparent"
+                                BorderBrush="{DynamicResource JF.Border}" BorderThickness="1">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Accent}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionLabel" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource JF.TextMuted}" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Tombol kendali + lencana keadaan -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Border DockPanel.Dock="Right" x:Name="StateBadge" CornerRadius="7" Padding="10,4"
+                    Background="{DynamicResource JF.Panel}"
+                    BorderBrush="{DynamicResource JF.Border}" BorderThickness="1">
+                <TextBlock x:Name="StateText" Text="tidak ada yang berjalan" FontSize="12"
+                           FontFamily="{DynamicResource JF.FontBody}"
+                           Foreground="{DynamicResource JF.Brown900}" />
+            </Border>
+
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="ContinueButton" Style="{StaticResource DebugButton}" Click="Continue_Click"
+                        Content="Continue" ToolTip="Lanjutkan dari breakpoint" />
+                <Button x:Name="StepButton" Style="{StaticResource DebugButton}" Click="Step_Click"
+                        Content="Step" ToolTip="Jalankan satu activity lalu berhenti lagi" />
+                <Button x:Name="StopButton" Style="{StaticResource DebugButton}" Click="Stop_Click"
+                        Content="Stop" ToolTip="Hentikan jalannya workflow" />
+                <Button Style="{StaticResource DebugButton}" Click="Breakpoint_Click"
+                        Content="Toggle Breakpoint" ToolTip="Pasang/lepas breakpoint di activity yang dipilih" />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Kiri: riwayat jalan. Kanan: variabel jalan yang dipilih. -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240" MinWidth="150" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="*" MinWidth="220" />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel Grid.Column="0">
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource SectionLabel}" Text="RIWAYAT JALAN" />
+                <ListBox x:Name="RunList" SelectionChanged="RunList_SelectionChanged"
+                         BorderBrush="{DynamicResource JF.Border}" BorderThickness="1"
+                         Background="{DynamicResource JF.Panel}"
+                         HorizontalContentAlignment="Stretch" FontSize="12">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="2,3">
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource JF.Brown900}" />
+                                <TextBlock Text="{Binding Detail}" FontSize="11"
+                                           Foreground="{DynamicResource JF.TextMuted}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"
+                          Background="Transparent" />
+
+            <DockPanel Grid.Column="2">
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource SectionLabel}" Text="VARIABEL" />
+                <DataGrid x:Name="VariableGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                          BorderBrush="{DynamicResource JF.Border}" BorderThickness="1"
+                          Background="{DynamicResource JF.Panel}" RowBackground="Transparent"
+                          FontSize="12" CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Nama" Binding="{Binding Name}" Width="150" />
+                        <DataGridTextColumn Header="Tipe" Binding="{Binding TypeName}" Width="120" />
+                        <DataGridTextColumn Header="Nilai" Binding="{Binding Value}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Grid>
+
+        <!-- Kotak kesalahan; disembunyikan selama jalannya tidak gagal. -->
+        <Border Grid.Row="2" x:Name="ErrorBox" Margin="0,8,0,0" Padding="9,6" CornerRadius="7"
+                Background="#FFFBEDEA" BorderBrush="#FFE0A79B" BorderThickness="1"
+                Visibility="Collapsed">
+            <TextBlock x:Name="ErrorText" TextWrapping="Wrap" FontSize="12"
+                       FontFamily="{DynamicResource JF.FontBody}" Foreground="#FF8A2F1D" />
+        </Border>
+    </Grid>
+</UserControl>

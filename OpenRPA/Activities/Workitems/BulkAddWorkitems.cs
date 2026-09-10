@@ -15,10 +15,10 @@ using OpenTelemetry.Trace;
 namespace OpenRPA.WorkItems
 {
     [System.ComponentModel.Designer(typeof(BulkAddWorkitemsDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.bulkaddworkitems.png")]
     [LocalizedToolboxTooltip("activity_bulkaddworkitems_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_bulkaddworkitems", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_bulkaddworkitems_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_bulkaddworkitems.png")]
     public class BulkAddWorkitems : AsyncTaskCodeActivity
     {
         [RequiredArgument, LocalizedDisplayName("activity_bulkaddworkitems_wiqid", typeof(Resources.strings)), LocalizedDescription("activity_bulkaddworkitems_wiqid_help", typeof(Resources.strings)), OverloadGroup("By ID")]

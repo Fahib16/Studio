@@ -15,8 +15,8 @@ using ExcelDataReader;
 namespace OpenRPA.Utilities
 {
     [Designer(typeof(SelectFolderDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.selectfolder.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_selectfolder.png")]
     public class SelectFolder : CodeActivity
     {
         public InArgument<bool> ShowNewFolderButton { get; set; }

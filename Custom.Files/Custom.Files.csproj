@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F31D55C4-5888-4C76-82B3-B9BA25BC6957}</ProjectGuid>
+    <OutputType>library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Custom.Files</RootNamespace>
+    <AssemblyName>Custom.Files</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <!-- WPF project type guid WAJIB ada; tanpa ini XAML ActivityDesigner tidak
+         ikut dikompilasi dan tag sap:ActivityDesigner dianggap tidak dikenal. -->
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.Activities.Presentation" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Activities\TextFileEncoding.cs" />
+    <Compile Include="Activities\CopyFile.cs" />
+    <Compile Include="Activities\CopyFileDesigner.xaml.cs">
+      <DependentUpon>CopyFileDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\MoveFile.cs" />
+    <Compile Include="Activities\MoveFileDesigner.xaml.cs">
+      <DependentUpon>MoveFileDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\DeleteFile.cs" />
+    <Compile Include="Activities\DeleteFileDesigner.xaml.cs">
+      <DependentUpon>DeleteFileDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\CreateFolder.cs" />
+    <Compile Include="Activities\CreateFolderDesigner.xaml.cs">
+      <DependentUpon>CreateFolderDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\DeleteFolder.cs" />
+    <Compile Include="Activities\DeleteFolderDesigner.xaml.cs">
+      <DependentUpon>DeleteFolderDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\FileExists.cs" />
+    <Compile Include="Activities\FileExistsDesigner.xaml.cs">
+      <DependentUpon>FileExistsDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\FolderExists.cs" />
+    <Compile Include="Activities\FolderExistsDesigner.xaml.cs">
+      <DependentUpon>FolderExistsDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\FolderInfo.cs" />
+    <Compile Include="Activities\FolderInfoDesigner.xaml.cs">
+      <DependentUpon>FolderInfoDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ReadTextFile.cs" />
+    <Compile Include="Activities\ReadTextFileDesigner.xaml.cs">
+      <DependentUpon>ReadTextFileDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\WriteTextFile.cs" />
+    <Compile Include="Activities\WriteTextFileDesigner.xaml.cs">
+      <DependentUpon>WriteTextFileDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\AppendLine.cs" />
+    <Compile Include="Activities\AppendLineDesigner.xaml.cs">
+      <DependentUpon>AppendLineDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ListFilesInFolder.cs" />
+    <Compile Include="Activities\ListFilesInFolderDesigner.xaml.cs">
+      <DependentUpon>ListFilesInFolderDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\WaitForFile.cs" />
+    <Compile Include="Activities\WaitForFileDesigner.xaml.cs">
+      <DependentUpon>WaitForFileDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ZipFiles.cs" />
+    <Compile Include="Activities\ZipFilesDesigner.xaml.cs">
+      <DependentUpon>ZipFilesDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\Unzip.cs" />
+    <Compile Include="Activities\UnzipDesigner.xaml.cs">
+      <DependentUpon>UnzipDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\WaitForDownload.cs" />
+    <Compile Include="Activities\WaitForDownloadDesigner.xaml.cs">
+      <DependentUpon>WaitForDownloadDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="Activities\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Activities\WaitForDownloadDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\UnzipDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ZipFilesDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WaitForFileDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ListFilesInFolderDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\AppendLineDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WriteTextFileDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ReadTextFileDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\FolderInfoDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\FolderExistsDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\FileExistsDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\DeleteFolderDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\CreateFolderDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\DeleteFileDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\MoveFileDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\CopyFileDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Tombol pemilih berkas/folder pada kartu activity (PathDesignerBase). -->
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj">
+      <Project>{5aaa6277-bdc9-4b24-950b-eb7a43ab948a}</Project>
+      <Name>OpenRPA.Interfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Resources\ResFinder.cs" />
+    <EmbeddedResource Include="Resources\waitfordownload.png">
+      <LogicalName>Custom.Files.Resources.waitfordownload.png</LogicalName>
+    </EmbeddedResource>
+    <Resource Include="Resources\waitfordownload.png" />
+    <EmbeddedResource Include="Resources\appendline.png">
+      <LogicalName>Custom.Files.Resources.appendline.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\copyfile.png">
+      <LogicalName>Custom.Files.Resources.copyfile.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\createfolder.png">
+      <LogicalName>Custom.Files.Resources.createfolder.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\deletefile.png">
+      <LogicalName>Custom.Files.Resources.deletefile.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\deletefolder.png">
+      <LogicalName>Custom.Files.Resources.deletefolder.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\fileexists.png">
+      <LogicalName>Custom.Files.Resources.fileexists.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\folderexists.png">
+      <LogicalName>Custom.Files.Resources.folderexists.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\folderinfo.png">
+      <LogicalName>Custom.Files.Resources.folderinfo.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\listfiles.png">
+      <LogicalName>Custom.Files.Resources.listfiles.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\movefile.png">
+      <LogicalName>Custom.Files.Resources.movefile.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\readtextfile.png">
+      <LogicalName>Custom.Files.Resources.readtextfile.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\unzip.png">
+      <LogicalName>Custom.Files.Resources.unzip.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\waitforfile.png">
+      <LogicalName>Custom.Files.Resources.waitforfile.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\writetextfile.png">
+      <LogicalName>Custom.Files.Resources.writetextfile.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\zipfiles.png">
+      <LogicalName>Custom.Files.Resources.zipfiles.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Resource Include="Resources\appendline.png" />
+    <Resource Include="Resources\copyfile.png" />
+    <Resource Include="Resources\createfolder.png" />
+    <Resource Include="Resources\deletefile.png" />
+    <Resource Include="Resources\deletefolder.png" />
+    <Resource Include="Resources\fileexists.png" />
+    <Resource Include="Resources\folderexists.png" />
+    <Resource Include="Resources\folderinfo.png" />
+    <Resource Include="Resources\listfiles.png" />
+    <Resource Include="Resources\movefile.png" />
+    <Resource Include="Resources\readtextfile.png" />
+    <Resource Include="Resources\unzip.png" />
+    <Resource Include="Resources\waitforfile.png" />
+    <Resource Include="Resources\writetextfile.png" />
+    <Resource Include="Resources\zipfiles.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -10,8 +10,16 @@ namespace Custom.Terminal
     /// Signature dikonfirmasi dari TheDemo.cs: WaitForText(row, col, text, timeoutMs) -> bool
     /// </summary>
     [Designer(typeof(Design.WaitForTerminalTextDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.waitterminaltext.png")]
+    [DisplayName("Wait For Terminal Text")]
+    [Description("Menunggu teks tertentu muncul di layar terminal.")]
     public class WaitForTerminalText : CodeActivity
     {
+        public WaitForTerminalText()
+        {
+            DisplayName = "Wait For Terminal Text";
+        }
+
         [Category("Input")]
         [RequiredArgument]
         [DisplayName("Session")]
@@ -57,7 +65,15 @@ namespace Custom.Terminal
             var timeout = Timeout != null ? Timeout.Get(context) : TimeSpan.Zero;
             if (timeout == TimeSpan.Zero) timeout = TimeSpan.FromSeconds(20);
 
-            bool found = session.WaitForText(row, col, text, (int)timeout.TotalMilliseconds);
+            // PERBAIKAN: sebelumnya dipanggil WaitForText(row, col, ...) —
+            // TERBALIK. Signature Open3270 adalah WaitForText(int x, int y, ...)
+            // dengan x = KOLOM dan y = BARIS, keduanya berbasis 0 (lihat
+            // TerminalCoordinates untuk buktinya dari source Open3270).
+            // Akibat urutan lama, penungguan di baris 5 kolom 20 sebenarnya
+            // memeriksa baris 20 kolom 5.
+            bool found = session.WaitForText(
+                TerminalCoordinates.ToX(col), TerminalCoordinates.ToY(row),
+                text, (int)timeout.TotalMilliseconds);
 
             if (Found != null) Found.Set(context, found);
 
@@ -71,22 +87,59 @@ namespace Custom.Terminal
 
     /// <summary>
     /// Activity kustom: Get Terminal Text ala UiPath untuk OpenRPA.
-    /// Signature dikonfirmasi dari TheDemo.cs: CurrentScreenXML.Dump() -> string
-    /// (dump seluruh layar). Belum ada ekstraksi per-region row/col/length yang
-    /// terkonfirmasi -- kalau kamu butuh itu, saya perlu lihat lebih lanjut
-    /// struktur TnXMLScreen/Field milik Open3270 sebelum implementasi presisi.
+    ///
+    /// SEKARANG BISA PER-REGION. Catatan lama ("belum ada ekstraksi per-region
+    /// row/col/length yang terkonfirmasi") sudah tidak berlaku:
+    /// IXMLScreen.GetText(x, y, length) dan GetRow(y) memang ada, dan urutan
+    /// parameternya sudah dipastikan dari source Open3270 di repo ini (lihat
+    /// TerminalCoordinates).
+    ///
+    /// Aturan pemakaian:
+    ///   Row = 0            -> seluruh layar (perilaku lama, tetap default)
+    ///   Row diisi, Length 0 -> seluruh baris itu
+    ///   Row + Column + Length -> potongan sepanjang Length dari posisi itu
     /// </summary>
     [Designer(typeof(Design.GetTerminalTextDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.getterminaltext.png")]
+    [DisplayName("Get Terminal Text")]
+    [Description("Membaca teks dari layar terminal: seluruh layar, satu baris, atau potongan.")]
     public class GetTerminalText : CodeActivity
     {
+        public GetTerminalText()
+        {
+            DisplayName = "Get Terminal Text";
+        }
+
         [Category("Input")]
         [RequiredArgument]
         [DisplayName("Session")]
         public InArgument<TNEmulator> Session { get; set; }
 
+        [Category("Target")]
+        [DisplayName("Row")]
+        [Description("Opsional, berbasis 1. Kosong (0) berarti seluruh layar.")]
+        public InArgument<int> Row { get; set; }
+
+        [Category("Target")]
+        [DisplayName("Column")]
+        [Description("Opsional, berbasis 1. Hanya dipakai bersama Length.")]
+        public InArgument<int> Column { get; set; }
+
+        [Category("Target")]
+        [DisplayName("Length")]
+        [Description("Jumlah karakter yang diambil. 0 berarti sampai akhir baris.")]
+        public InArgument<int> Length { get; set; }
+
+        [Category("Options")]
+        [DisplayName("Trim")]
+        [Description("True (default): buang spasi di ujung hasil. Layar 3270 selalu " +
+                     "dipenuhi spasi sampai batas kolom, dan spasi itu hampir tidak pernah diinginkan.")]
+        [DefaultValue(true)]
+        public bool Trim { get; set; } = true;
+
         [Category("Output")]
         [DisplayName("Text")]
-        [Description("Seluruh isi layar terminal saat ini (dump text)")]
+        [Description("Isi layar, baris, atau potongan yang diminta.")]
         public OutArgument<string> Text { get; set; }
 
         protected override void Execute(CodeActivityContext context)
@@ -94,9 +147,41 @@ namespace Custom.Terminal
             var session = Session.Get(context);
             if (session == null) throw new ArgumentException("Session tidak boleh kosong");
 
-            var screenText = session.CurrentScreenXML?.Dump() ?? string.Empty;
+            var row = Row != null ? Row.Get(context) : 0;
+            var column = Column != null ? Column.Get(context) : 0;
+            var length = Length != null ? Length.Get(context) : 0;
 
-            if (Text != null) Text.Set(context, screenText);
+            string result;
+
+            if (row <= 0)
+            {
+                // Seluruh layar: Dump() dipertahankan supaya hasilnya sama
+                // persis dengan versi sebelumnya bagi workflow yang sudah ada.
+                result = session.CurrentScreenXML?.Dump() ?? string.Empty;
+                if (Text != null) Text.Set(context, result);
+                return;
+            }
+
+            var screen = TerminalCoordinates.Screen(session);
+
+            if (length > 0)
+            {
+                result = screen.GetText(TerminalCoordinates.ToX(column),
+                                        TerminalCoordinates.ToY(row), length) ?? string.Empty;
+            }
+            else
+            {
+                result = screen.GetRow(TerminalCoordinates.ToY(row)) ?? string.Empty;
+
+                // Kolom diisi tanpa Length berarti "dari kolom itu sampai
+                // akhir baris".
+                var start = TerminalCoordinates.ToX(column);
+                if (start > 0 && start < result.Length) result = result.Substring(start);
+            }
+
+            if (Trim) result = result.TrimEnd();
+
+            if (Text != null) Text.Set(context, result);
         }
     }
 }

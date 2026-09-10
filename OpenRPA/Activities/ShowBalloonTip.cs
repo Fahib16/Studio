@@ -14,10 +14,10 @@ using System.Data;
 namespace OpenRPA.Activities
 {
     [Designer(typeof(ShowNotificationDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.showballontip.png")]
     [LocalizedToolboxTooltip("activity_showballoontip_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_showballoontip", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_showballoontip_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_balloontip.png")]
     public class ShowBalloonTip : CodeActivity
     {
         [RequiredArgument, Category("Input")]

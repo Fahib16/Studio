@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 namespace OpenRPA.Activities
 {
     [Designer(typeof(CommentOutDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.commentout.png")]
     [System.Windows.Markup.ContentProperty("Body")]
     [LocalizedToolboxTooltip("activity_commentout_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_commentout", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_commentout_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_commentout.png")]
     public class CommentOut : CodeActivity
     {
         [DefaultValue(null)]

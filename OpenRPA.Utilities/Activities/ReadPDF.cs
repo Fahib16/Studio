@@ -9,8 +9,8 @@ using System.Text;
 namespace OpenRPA.Utilities
 {
     [Designer(typeof(ReadPDFDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.readpdf.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_readpdf.png")]
     public class ReadPDF : CodeActivity
     {
         [RequiredArgument]

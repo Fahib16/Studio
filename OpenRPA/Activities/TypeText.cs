@@ -45,131 +45,17 @@ namespace OpenRPA.Activities
         /// </summary>
         public static void TypeString(string text, TimeSpan clickdelay)
         {
-            var disposes = new List<IDisposable>();
-            var enddisposes = new List<IDisposable>();
-            if (string.IsNullOrEmpty(text)) return;
-
-            if (clickdelay.TotalMilliseconds < 10) clickdelay = TimeSpan.FromMilliseconds(10);
-            var linedelay = TimeSpan.FromMilliseconds(5);
-
-            for (var i = 0; i < text.Length; i++)
-            {
-                char c = text[i];
-                if (c == '{')
-                {
-                    int indexEnd = text.IndexOf('}', i + 1);
-                    int indexNextStart = text.IndexOf('{', indexEnd + 1);
-                    int indexNextEnd = text.IndexOf('}', indexEnd + 1);
-                    if (indexNextStart > indexNextEnd || (indexNextStart == -1 && indexNextEnd > -1)) indexEnd = indexNextEnd;
-                    var sub = text.Substring(i + 1, (indexEnd - i) - 1);
-                    i = indexEnd;
-                    foreach (var k in sub.Split(','))
-                    {
-                        string key = k.Trim();
-                        bool down = false;
-                        bool up = false;
-                        if (key.EndsWith("down"))
-                        {
-                            down = true;
-                            key = key.Replace(" down", "");
-                        }
-                        else if (key.EndsWith("up"))
-                        {
-                            up = true;
-                            key = key.Replace(" up", "");
-                        }
-                        FlaUI.Core.WindowsAPI.VirtualKeyShort vk;
-                        Enum.TryParse<FlaUI.Core.WindowsAPI.VirtualKeyShort>(key, true, out vk);
-                        if (down)
-                        {
-                            if (vk > 0)
-                            {
-                                enddisposes.Add(FlaUI.Core.Input.Keyboard.Pressing(vk));
-                            }
-                            else
-                            {
-                                FlaUI.Core.Input.Keyboard.Type(key);
-                            }
-                        }
-                        else if (up)
-                        {
-                            if (vk > 0)
-                            {
-                                FlaUI.Core.Input.Keyboard.Release(vk);
-                            }
-                            else
-                            {
-                                FlaUI.Core.Input.Keyboard.Type(key);
-                            }
-                        }
-                        else
-                        {
-                            if (vk > 0)
-                            {
-                                switch (vk)
-                                {
-                                    case FlaUI.Core.WindowsAPI.VirtualKeyShort.LEFT: System.Windows.Forms.SendKeys.SendWait("+({LEFT})"); break;
-                                    case FlaUI.Core.WindowsAPI.VirtualKeyShort.RIGHT: System.Windows.Forms.SendKeys.SendWait("+({RIGHT})"); break;
-                                    case FlaUI.Core.WindowsAPI.VirtualKeyShort.UP: System.Windows.Forms.SendKeys.SendWait("+({UP})"); break;
-                                    case FlaUI.Core.WindowsAPI.VirtualKeyShort.DOWN: System.Windows.Forms.SendKeys.SendWait("+({DOWN})"); break;
-                                    case FlaUI.Core.WindowsAPI.VirtualKeyShort.END: System.Windows.Forms.SendKeys.SendWait("+({END})"); break;
-                                    case FlaUI.Core.WindowsAPI.VirtualKeyShort.HOME: System.Windows.Forms.SendKeys.SendWait("+({HOME})"); break;
-                                    default:
-                                        FlaUI.Core.Input.Keyboard.Press(vk);
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                FlaUI.Core.Input.Keyboard.Type(key);
-                            }
-                        }
-                        System.Threading.Thread.Sleep(clickdelay);
-                    }
-                    disposes.ForEach(x => { x.Dispose(); });
-                }
-                else
-                {
-                    FlaUI.Core.Input.Keyboard.Type(c);
-                    System.Threading.Thread.Sleep(clickdelay);
-                }
-            }
-            enddisposes.ForEach(x => { x.Dispose(); });
+            // Implementasinya DIPINDAHKAN ke OpenRPA.Interfaces.KeyboardInput
+            // supaya activity di project Custom.* bisa memakainya juga —
+            // project itu tidak boleh mereferensi project OpenRPA (referensi
+            // melingkar). Method ini dibiarkan ada dan meneruskan, jadi
+            // seluruh pemanggil lama tetap jalan tanpa diubah.
+            OpenRPA.Interfaces.KeyboardInput.TypeString(text, clickdelay);
         }
 
         public static List<FlaUI.Core.WindowsAPI.VirtualKeyShort> GetKeys(string text)
         {
-            var result = new List<FlaUI.Core.WindowsAPI.VirtualKeyShort>();
-            if (string.IsNullOrEmpty(text)) return result;
-            for (var i = 0; i < text.Length; i++)
-            {
-                char c = text[i];
-                if (c == '{')
-                {
-                    int indexEnd = text.IndexOf('}', i + 1);
-                    int indexNextStart = text.IndexOf('{', indexEnd + 1);
-                    int indexNextEnd = text.IndexOf('}', indexEnd + 1);
-                    if (indexNextStart > indexNextEnd || (indexNextStart == -1 && indexNextEnd > -1)) indexEnd = indexNextEnd;
-                    var sub = text.Substring(i + 1, (indexEnd - i) - 1);
-                    i = indexEnd;
-                    foreach (var k in sub.Split(','))
-                    {
-                        string key = k.Trim();
-                        if (key.EndsWith("down"))
-                        {
-                            key = key.Replace(" down", "");
-                        }
-                        else if (key.EndsWith("up"))
-                        {
-                            key = key.Replace(" up", "");
-                        }
-                        FlaUI.Core.WindowsAPI.VirtualKeyShort vk;
-                        Enum.TryParse<FlaUI.Core.WindowsAPI.VirtualKeyShort>(key, true, out vk);
-                        result.Add(vk);
-                    }
-                }
-            }
-            return result;
+            return OpenRPA.Interfaces.KeyboardInput.GetKeys(text);
         }
         internal List<vKey> _keys = new List<vKey>();
         internal string result;

@@ -15,10 +15,10 @@ using System.Windows;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(BreakDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.break.png")]
     [LocalizedToolboxTooltip("activity_break_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_break", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_break_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_break.png")]
     public class Break : NativeActivity
     {
         protected override void Execute(NativeActivityContext context)

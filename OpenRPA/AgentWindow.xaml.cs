@@ -69,6 +69,7 @@ namespace OpenRPA
         bool AllowQuite = false;
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            Views.JakForgeLoadingWindow.HandOverTo(this);
             try
             {
                 OnOpen(null);
@@ -907,7 +908,7 @@ namespace OpenRPA
                 try
                 {
                     var serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(DManager);
-                    using (var stream = new System.IO.StreamWriter(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "layoutagent.config")))
+                    using (var stream = new System.IO.StreamWriter(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "layoutagent.config")))
                         serializer.Serialize(stream);
                 }
                 catch (Exception ex)
@@ -932,11 +933,11 @@ namespace OpenRPA
                     var fi = new System.IO.FileInfo("layoutagent.config");
                     var di = fi.Directory;
 
-                    if (System.IO.File.Exists(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "layoutagent.config")))
+                    if (System.IO.File.Exists(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "layoutagent.config")))
                     {
                         var ds = DManager.Layout.Descendents();
                         var serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(DManager);
-                        using (var stream = new System.IO.StreamReader(System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "layoutagent.config")))
+                        using (var stream = new System.IO.StreamReader(System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "layoutagent.config")))
                             serializer.Deserialize(stream);
                         ds = DManager.Layout.Descendents();
                     }

@@ -14,10 +14,23 @@
     -->
     <Application.Resources>
         <ResourceDictionary>
-<!--             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/ToastNotifications.Messages;component/Themes/Default.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
+            <!--
+                Tema JakForge dipasang di level aplikasi supaya semua window
+                (Loading, daftar proyek, editor kanvas) memakai satu sumber
+                warna dan huruf yang sama. Isinya hanya resource ber-x:Key,
+                tidak ada style implisit, jadi tampilan bawaan OpenRPA tidak
+                ikut berubah kecuali memang dirujuk.
             -->
+            <ResourceDictionary.MergedDictionaries>
+                <!--
+                    Paletnya harus SEBELUM JakForge.xaml: gaya di sana merujuk
+                    kuas yang didefinisikan di sini. Palet terang dipasang
+                    sebagai bawaan; StudioTheming menukarnya kalau setelan
+                    bersama meminta gelap.
+                -->
+                <ResourceDictionary Source="/OpenRPA;component/Themes/JakForgePalette.Light.xaml" />
+                <ResourceDictionary Source="/OpenRPA;component/Themes/JakForge.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
             <!--You have to add other style here only-->
 

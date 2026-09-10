@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(BreakableDoWhileDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.dowhile.png")]
     [System.Windows.Markup.ContentProperty("Body")]
     [LocalizedToolboxTooltip("activity_Breakabledowhile_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_Breakabledowhile", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_Breakabledowhile_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_dowhile.png")]
     public class BreakableDoWhile : BreakableLoop // , System.Activities.Presentation.IActivityTemplateFactory
     {
         [RequiredArgument, LocalizedDisplayName("activity_condition", typeof(Resources.strings)), LocalizedDescription("activity_condition_help", typeof(Resources.strings))]

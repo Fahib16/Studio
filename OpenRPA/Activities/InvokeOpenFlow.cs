@@ -14,10 +14,10 @@ using OpenTelemetry.Trace;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(InvokeOpenFlowDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.invokeopenflow.png")]
     [LocalizedToolboxTooltip("activity_invokeopenflow_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_invokeopenflow", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_invokeopenflow_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_invokeopenflow.png")]
     public class InvokeOpenFlow : NativeActivity
     {
         public InvokeOpenFlow()

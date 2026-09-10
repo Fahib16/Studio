@@ -26,8 +26,16 @@ namespace Custom.StudioBridge
     /// cuma karena deteksi ini tidak berhasil.
     /// </summary>
     [Designer(typeof(Design.StudioLaunchChromeDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.launchchrome.png")]
+    [DisplayName("Launch Chrome")]
+    [Description("Menjalankan Chrome dari nol beserta extension Studio Bridge.")]
     public class StudioLaunchChrome : CodeActivity
     {
+        public StudioLaunchChrome()
+        {
+            DisplayName = "Launch Chrome";
+        }
+
         [Category("Input")]
         [DisplayName("Url")]
         [Description("Opsional. Kosongkan untuk buka Chrome ke halaman New Tab biasa.")]
@@ -47,6 +55,7 @@ namespace Custom.StudioBridge
 
         [Category("Common")]
         [DisplayName("Continue On Error")]
+        [System.ComponentModel.Editor(typeof(Custom.Shared.ContinueOnErrorEditor), typeof(System.Activities.Presentation.PropertyEditing.PropertyValueEditor))]
         public InArgument<bool> ContinueOnError { get; set; }
 
         protected override void Execute(CodeActivityContext context)

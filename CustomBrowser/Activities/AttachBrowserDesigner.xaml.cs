@@ -31,32 +31,34 @@ namespace Custom.Browser.Design
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        /// <summary>
+        /// Memilih browser yang mau dipakai dari daftar tab yang sedang
+        /// terbuka.
+        ///
+        /// Sebelumnya tombol ini membuka SelectorWindow milik OpenRPA dan
+        /// menyimpan selector JSON-nya. Padahal dari selector itu yang
+        /// benar-benar dipakai saat dijalankan hanyalah URL-nya. Sekarang
+        /// pemilihnya memakai daftar tab dari jembatan Studio sendiri
+        /// (IndicateHelper.PickTabForAttach), dan yang disimpan langsung
+        /// URL-nya — tidak ada lagi selector OpenRPA di sini.
+        /// </summary>
         private void OpenSelector_Click(object sender, RoutedEventArgs e)
         {
-            string SelectorString = ModelItem.GetValue<string>("Selector");
-            const int maxresults = 1;
+            try
+            {
+                var picked = Custom.StudioBridge.Design.IndicateHelper.PickTabForAttach();
+                if (picked == null) return;
 
-            OpenRPA.Interfaces.Selector.SelectorWindow selectors;
-            if (!string.IsNullOrEmpty(SelectorString))
-            {
-                var selector = new NMSelector(SelectorString);
-                selectors = new OpenRPA.Interfaces.Selector.SelectorWindow("NM", selector, null, maxresults);
-            }
-            else
-            {
-                var selector = new NMSelector("[{Selector: 'NM'}]");
-                selectors = new OpenRPA.Interfaces.Selector.SelectorWindow("NM", selector, null, maxresults);
-            }
+                ModelItem.Properties["Url"].SetValue(
+                    new InArgument<string>() { Expression = new Literal<string>(picked.Url ?? "") });
 
-            if (selectors.ShowDialog() == true)
+                NotifyPropertyChanged("Url");
+            }
+            catch (Exception ex)
             {
-                ModelItem.Properties["Selector"].SetValue(new InArgument<string>() { Expression = new Literal<string>(selectors.vm.json) });
-                var l = selectors.vm.Selector.Last();
-                if (l.Element != null)
-                {
-                    ModelItem.Properties["Image"].SetValue(l.Element.ImageString());
-                    NotifyPropertyChanged("Image");
-                }
+                System.Windows.MessageBox.Show(
+                    "Gagal mengambil daftar tab: " + ex.Message, "Attach Browser",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
     }

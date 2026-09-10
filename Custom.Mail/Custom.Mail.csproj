@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F3C29DB7-4063-46E8-8672-79330E3E862E}</ProjectGuid>
+    <OutputType>library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Custom.Mail</RootNamespace>
+    <AssemblyName>Custom.Mail</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <!-- WPF project type guid WAJIB ada; tanpa ini XAML ActivityDesigner tidak
+         ikut dikompilasi dan tag sap:ActivityDesigner dianggap tidak dikenal. -->
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="MailKit, Version=3.1.0.0, Culture=neutral, PublicKeyToken=4e064fe7c44a8f1b, processorArchitecture=MSIL">
+      <HintPath>..\packages\MailKit.3.1.1\lib\net46\MailKit.dll</HintPath>
+    </Reference>
+    <Reference Include="MimeKit, Version=3.1.0.0, Culture=neutral, PublicKeyToken=bede1c8a46c66814, processorArchitecture=MSIL">
+      <HintPath>..\packages\MimeKit.3.1.1\lib\net46\MimeKit.dll</HintPath>
+    </Reference>
+    <!-- BouncyCastle dan System.Buffers TIDAK disalin ke folder output
+         (Private=False): keduanya SUDAH ada di sana dari paket lain
+         (BouncyCastle 1.8.6 dibawa iTextSharp lewat OpenRPA.Utilities,
+         System.Buffers 4.0.3 sudah punya binding redirect di App.config).
+         Menyalin versi lain ke folder yang sama berarti menimpa berkas milik
+         paket lain — persis kasus "satu tipe jadi dua tipe" yang harus
+         dihindari. Lihat README untuk risiko yang tersisa. -->
+    <Reference Include="BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
+      <HintPath>..\packages\Portable.BouncyCastle.1.9.0\lib\net40\BouncyCastle.Crypto.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.Activities.Presentation" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Activities\MailItem.cs" />
+    <Compile Include="Activities\SendMail.cs" />
+    <Compile Include="Activities\SendMailDesigner.xaml.cs">
+      <DependentUpon>SendMailDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\MailServerActivity.cs" />
+    <Compile Include="Activities\GetMailImap.cs" />
+    <Compile Include="Activities\GetMailImapDesigner.xaml.cs">
+      <DependentUpon>GetMailImapDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GetMailPop3.cs" />
+    <Compile Include="Activities\GetMailPop3Designer.xaml.cs">
+      <DependentUpon>GetMailPop3Designer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\SaveAttachments.cs" />
+    <Compile Include="Activities\SaveAttachmentsDesigner.xaml.cs">
+      <DependentUpon>SaveAttachmentsDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\MoveMailToFolder.cs" />
+    <Compile Include="Activities\MoveMailToFolderDesigner.xaml.cs">
+      <DependentUpon>MoveMailToFolderDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="Activities\README.md" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Activities\MoveMailToFolderDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\SaveAttachmentsDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GetMailPop3Designer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GetMailImapDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\SendMailDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Tombol pemilih berkas/folder pada kartu activity (PathDesignerBase). -->
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj">
+      <Project>{5aaa6277-bdc9-4b24-950b-eb7a43ab948a}</Project>
+      <Name>OpenRPA.Interfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Resources\ResFinder.cs" />
+    <EmbeddedResource Include="Resources\getmailimap.png">
+      <LogicalName>Custom.Mail.Resources.getmailimap.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\getmailpop3.png">
+      <LogicalName>Custom.Mail.Resources.getmailpop3.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\movemail.png">
+      <LogicalName>Custom.Mail.Resources.movemail.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\saveattachments.png">
+      <LogicalName>Custom.Mail.Resources.saveattachments.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\sendmail.png">
+      <LogicalName>Custom.Mail.Resources.sendmail.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Resource Include="Resources\getmailimap.png" />
+    <Resource Include="Resources\getmailpop3.png" />
+    <Resource Include="Resources\movemail.png" />
+    <Resource Include="Resources\saveattachments.png" />
+    <Resource Include="Resources\sendmail.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

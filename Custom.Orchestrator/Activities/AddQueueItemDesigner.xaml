@@ -1,0 +1,91 @@
+<sap:ActivityDesigner
+    x:Class="Custom.Orchestrator.Activities.AddQueueItemDesigner"
+    Template="{DynamicResource JF.CardTemplate}"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sap="clr-namespace:System.Activities.Presentation;assembly=System.Activities.Presentation"
+    xmlns:sapv="clr-namespace:System.Activities.Presentation.View;assembly=System.Activities.Presentation"
+    xmlns:sapc="clr-namespace:System.Activities.Presentation.Converters;assembly=System.Activities.Presentation"
+    >
+
+    <sap:ActivityDesigner.Icon>
+        <DrawingBrush Stretch="Uniform">
+            <DrawingBrush.Drawing>
+                <ImageDrawing Rect="0,0,16,16" ImageSource="/Custom.Orchestrator;component/Resources/addqueueitem.png" />
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+    </sap:ActivityDesigner.Icon>
+
+    <sap:ActivityDesigner.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Custom.Orchestrator;component/Resources/JakForgeCard.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+        <!-- ExpressionTextBox TIDAK BISA di-bind langsung ke .Expression;
+             wajib lewat converter ini (In untuk InArgument, Out +
+             UseLocationExpression untuk OutArgument). -->
+        <sapc:ArgumentToExpressionConverter x:Key="ArgToExpr" />
+        </ResourceDictionary>
+    </sap:ActivityDesigner.Resources>
+
+    <Grid MinWidth="200">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="{StaticResource HeaderBrush}"
+                CornerRadius="3,3,0,0" Padding="8,4">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="/Custom.Orchestrator;component/Resources/addqueueitem.png" Width="14" Height="14"
+                       Margin="0,0,8,0" VerticalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <!-- Judul bisa langsung diketik ulang di canvas, jadi activity
+                     bisa dinamai tanpa membuka panel Properties. -->
+                <TextBox Text="{Binding Path=ModelItem.DisplayName, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         Foreground="White" FontWeight="Bold" FontSize="12"
+                         Background="Transparent" BorderThickness="0" Padding="0"
+                         CaretBrush="White" MinWidth="105" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" BorderBrush="#FFE2D8C6" BorderThickness="1" CornerRadius="0,0,3,3"
+                Background="#FFFFFDF8" Padding="8,5">
+            <StackPanel>
+                <TextBlock Margin="0,0,0,2" FontSize="10" Foreground="#FF6B5B4B">
+                    <Run Text="Queue name" FontWeight="SemiBold" /><Run Text=" *" Foreground="Red" />
+                </TextBlock>
+                <sapv:ExpressionTextBox
+                    Expression="{Binding Path=ModelItem.QueueName,
+                                         Converter={StaticResource ArgToExpr},
+                                         ConverterParameter=In, Mode=TwoWay}"
+                    OwnerActivity="{Binding Path=ModelItem}"
+                    HintText="Nama antrean di ForgeHub"
+                    MaxLines="1" MinWidth="185" />
+
+                <TextBlock Margin="0,8,0,2" FontSize="10" Foreground="#FF6B5B4B">
+                    <Run Text="Reference" FontWeight="SemiBold" />
+                </TextBlock>
+                <sapv:ExpressionTextBox
+                    Expression="{Binding Path=ModelItem.Reference,
+                                         Converter={StaticResource ArgToExpr},
+                                         ConverterParameter=In, Mode=TwoWay}"
+                    OwnerActivity="{Binding Path=ModelItem}"
+                    HintText="Penanda unik, misalnya nomor faktur"
+                    MaxLines="1" MinWidth="185" />
+
+                <TextBlock Margin="0,8,0,2" FontSize="10" Foreground="#FF6B5B4B">
+                    <Run Text="Item data" FontWeight="SemiBold" />
+                </TextBlock>
+                <sapv:ExpressionTextBox
+                    Expression="{Binding Path=ModelItem.ItemData,
+                                         Converter={StaticResource ArgToExpr},
+                                         ConverterParameter=In, Mode=TwoWay}"
+                    OwnerActivity="{Binding Path=ModelItem}"
+                    HintText="Dictionary atau teks JSON"
+                    MaxLines="1" MinWidth="185" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</sap:ActivityDesigner>

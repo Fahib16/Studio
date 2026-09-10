@@ -76,6 +76,15 @@ namespace OpenRPA
 
         public App()
         {
+            // PALING DULU, sebelum baris apa pun yang menyentuh Config.local.
+            //
+            // Config.local membaca settings.json saat pertama kali disentuh,
+            // dan kalau berkas itu belum sempat disalin dari tata letak lama,
+            // yang terbaca adalah setelan bawaan — lalu setelan bawaan itulah
+            // yang tersimpan, dan setelan lama pengguna terkubur tanpa pernah
+            // terbaca sekali pun.
+            Interfaces.Extensions.PindahkanDataLamaKalauPerlu();
+
             if (!string.IsNullOrEmpty(Config.local.culture))
             {
                 try
@@ -110,7 +119,7 @@ namespace OpenRPA
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(LoadFromSameFolder);
             try
             {
-                var iconStream = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Resources/open_rpa.ico")).Stream;
+                var iconStream = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Resources/JakForge/jakforge.ico")).Stream;
                 notifyIcon.Icon = new System.Drawing.Icon(iconStream);
                 notifyIcon.Visible = false;
                 //notifyIcon.ShowBalloonTip(5000, "Title", "Text", System.Windows.Forms.ToolTipIcon.Info);
@@ -166,7 +175,7 @@ namespace OpenRPA
                 assemblyPath = System.IO.Path.Combine(folderPath, new AssemblyName(args.Name).Name + ".dll");
                 if (System.IO.File.Exists(assemblyPath)) return Assembly.LoadFrom(assemblyPath);
 
-                folderPath = Path.Combine(Interfaces.Extensions.ProjectsDirectory, "extensions");
+                folderPath = Path.Combine(Interfaces.Extensions.DataDirectory, "extensions");
                 assemblyPath = System.IO.Path.Combine(folderPath, new AssemblyName(args.Name).Name + ".dll");
                 if (System.IO.File.Exists(assemblyPath)) return Assembly.LoadFrom(assemblyPath);
 
@@ -181,6 +190,86 @@ namespace OpenRPA
             }
             return null;
         }
+        /// <summary>
+        /// Menulis kegagalan yang tidak tertangani ke sebuah berkas.
+        ///
+        /// Tanpa ini, kegagalan saat memuat jendela utama hanya meninggalkan
+        /// catatan "XamlParseException" di Event Viewer — tanpa pesan, tanpa
+        /// baris yang salah. Berkasnya berisi pesan lengkap beserta
+        /// InnerException, yang biasanya justru penyebab sebenarnya.
+        ///
+        /// Lokasinya: [folder proyek]\jakforge-crash.log
+        /// </summary>
+
+        /// <summary>
+        /// Jalankan JakRunner, asisten yang sekarang berdiri sendiri.
+        ///
+        /// Dicari di sebelah Studio: keduanya dipasang ke folder yang sama.
+        /// Kalau tidak ada di sana, katakan apa adanya — jangan diam-diam
+        /// membuka Studio, karena yang diminta orang tadi bukan Studio.
+        /// </summary>
+        private static void LaunchJakRunner()
+        {
+            try
+            {
+                var folder = System.IO.Path.GetDirectoryName(
+                    System.Reflection.Assembly.GetExecutingAssembly().Location);
+                var path = System.IO.Path.Combine(folder, "JakRunner.exe");
+
+                if (!System.IO.File.Exists(path))
+                {
+                    MessageBox.Show(
+                        "JakRunner.exe tidak ditemukan di " + folder + "." + Environment.NewLine + Environment.NewLine +
+                        "Asisten sekarang aplikasi tersendiri, bukan lagi mode di dalam Studio.",
+                        "JakRunner", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                System.Diagnostics.Process.Start(path);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Gagal menjalankan JakRunner: " + ex.Message);
+            }
+        }
+
+        private void InstallCrashLog()
+        {
+            Action<string, object> write = (source, error) =>
+            {
+                try
+                {
+                    var text = new System.Text.StringBuilder();
+                    text.AppendLine("==== " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " [" + source + "] ====");
+
+                    var ex = error as Exception;
+                    while (ex != null)
+                    {
+                        text.AppendLine(ex.GetType().FullName + ": " + ex.Message);
+                        text.AppendLine(ex.StackTrace);
+                        ex = ex.InnerException;
+                        if (ex != null) text.AppendLine("---- InnerException ----");
+                    }
+
+                    if (error != null && !(error is Exception)) text.AppendLine(error.ToString());
+                    text.AppendLine();
+
+                    var folder = Interfaces.Extensions.DataDirectory;
+                    if (string.IsNullOrEmpty(folder) || !System.IO.Directory.Exists(folder))
+                        folder = System.IO.Path.GetTempPath();
+
+                    System.IO.File.AppendAllText(
+                        System.IO.Path.Combine(folder, "jakforge-crash.log"), text.ToString());
+                }
+                catch (Exception)
+                {
+                }
+            };
+
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => write("AppDomain", e.ExceptionObject);
+            DispatcherUnhandledException += (s, e) => write("Dispatcher", e.Exception);
+        }
+
         void nIcon_Click(object sender, EventArgs e)
         {
             GenericTools.Restore();
@@ -206,32 +295,41 @@ namespace OpenRPA
                 AutomationHelper.syncContext = System.Threading.SynchronizationContext.Current;
                 System.Threading.Thread.CurrentThread.Name = "UIThread";
 
-                // --- TAMBAHKAN LOGIKA CUSTOM DI SINI ---
-                // Ambil nilai default dari config bawaan OpenRPA
-                bool isAssistantMode = Config.local.isagent;
+                InstallCrashLog();
 
-                // Timpa nilai default jika ada argumen yang dilempar dari shortcut MSI
+                // Kurung dan kutip yang menutup sendiri di kotak ekspresi activity.
+                Views.JakForgeAutoPair.Install();
+
+                // Tema terang/gelap dari setelan bersama. Diterapkan SEBELUM
+                // jendela pertama dibuat, supaya tidak ada kedipan terang
+                // sepersekian detik sebelum berganti gelap.
+                Views.JakForgeTheming.Apply();
+
+                // Layar Loading JakForge tampil lebih dulu supaya jendela
+                // pertama yang dilihat orang bukan jendela kosong.
+                Views.JakForgeLoadingWindow.ShowSplash();
+
+                // Studio adalah IDE MURNI.
+                //
+                // Dulu proses yang sama bisa menjadi asisten: kalau isagent
+                // menyala di setting.json, StartupUri diarahkan ke AgentWindow.
+                // Akibatnya menjalankan asisten berarti memuat seluruh Studio —
+                // pita, kanvas, WF Designer — untuk sesuatu yang cuma perlu
+                // menekan tombol Play.
+                //
+                // Asisten sekarang aplikasi tersendiri: JakRunner.exe. Argumen
+                // --assistant tetap dikenali supaya pintasan lama tidak berujung
+                // buntu; yang dilakukannya menjalankan JakRunner lalu menutup
+                // Studio.
                 if (e.Args.Contains("--assistant"))
                 {
-                    isAssistantMode = true;
+                    LaunchJakRunner();
+                    Shutdown();
+                    return;
                 }
-                else if (e.Args.Contains("--studio"))
-                {
-                    isAssistantMode = false;
-                }
-                // ---------------------------------------
 
-                // Ubah pengecekan Config.local.isagent menggunakan variabel isAssistantMode yang baru
-                if (!isAssistantMode)
-                {
-                    StartupUri = new Uri("/OpenRPA;component/MainWindow.xaml", UriKind.Relative);
-                    notifyIcon.Visible = false;
-                }
-                else
-                {
-                    StartupUri = new Uri("/OpenRPA;component/AgentWindow.xaml", UriKind.Relative);
-                    notifyIcon.Visible = true;
-                }
+                StartupUri = new Uri("/OpenRPA;component/MainWindow.xaml", UriKind.Relative);
+                notifyIcon.Visible = false;
 
                 // ... (biarkan sisa kode di bawahnya tetap sama seperti aslinya)
                 if (Config.local.files_pending_deletion.Length > 0)
@@ -260,7 +358,7 @@ namespace OpenRPA
                 if (Config.local.restore_dependencies_on_startup)
                 {
                     Log.Debug("Package restore on startup enabled -> cleaning existing extensions.");
-                    var extensionsPath = Path.Combine(Interfaces.Extensions.ProjectsDirectory, "extensions");
+                    var extensionsPath = Path.Combine(Interfaces.Extensions.DataDirectory, "extensions");
                     if (Directory.Exists(extensionsPath))
                     {
                         foreach (var file in Directory.GetFiles(extensionsPath))
@@ -311,6 +409,7 @@ namespace OpenRPA
             try
             {
                 Log.Debug(message);
+                Views.JakForgeLoadingWindow.SetStatus(message);
                 // notifyIcon.ShowBalloonTip(5000, "Title", message, System.Windows.Forms.ToolTipIcon.Info);
                 // if (splash != null) splash.BusyContent = message;
             }

@@ -210,4 +210,14 @@
     <Exec Command="copy $(OutputPath)..\$(PackageId).$(PackageVersion).nupkg C:\code\OpenRPA\packages" />
   </Target>
   <ProjectExtensions><VisualStudio><UserProperties BuildVersion_StartDate="2000/1/1" /></VisualStudio></ProjectExtensions>
+  <ItemGroup>
+    <None Remove="Resources\jf_executescript.png" />
+    <EmbeddedResource Include="Resources\jf_executescript.png">
+      <LogicalName>OpenRPA.NM.Resources.jf_executescript.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_waitfordownload.png" />
+    <EmbeddedResource Include="Resources\jf_waitfordownload.png">
+      <LogicalName>OpenRPA.NM.Resources.jf_waitfordownload.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

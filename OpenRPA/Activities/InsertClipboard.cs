@@ -12,10 +12,10 @@ using System.Threading.Tasks;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(InsertClipboardDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.insertclipboard.png")]
     [LocalizedToolboxTooltip("activity_insertclipboard_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_insertclipboard", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_insertclipboard_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_insertclipboard.png")]
     public class InsertClipboard : CodeActivity
     {
         [RequiredArgument, LocalizedDisplayName("activity_ignoreerrors", typeof(Resources.strings)), LocalizedDescription("activity_ignoreerrors_help", typeof(Resources.strings))]

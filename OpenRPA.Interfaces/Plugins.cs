@@ -282,7 +282,7 @@ namespace OpenRPA.Interfaces
             }
             try
             {
-                var extensions = System.IO.Path.Combine(Extensions.ProjectsDirectory, "extensions");
+                var extensions = System.IO.Path.Combine(Extensions.DataDirectory, "extensions");
                 if(System.IO.Directory.Exists(extensions))
                 {
                     foreach (var path in System.IO.Directory.GetFiles(extensions, "*.dll")) dllFileNames.Add(path);

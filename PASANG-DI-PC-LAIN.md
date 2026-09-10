@@ -1,8 +1,71 @@
 # Memasang JakForge Studio di komputer lain
 
-Tiga langkah. Dua di antaranya satu perintah, satu perlu satu klik di Chrome.
+## Cara singkat: pakai installer
+
+Salin **`JakForgeStudioSetup.exe`** ke komputer tujuan dan jalankan. Tanpa hak
+administrator, tanpa Visual Studio, tanpa git.
+
+Yang dikerjakannya sendiri:
+
+- menyalin program ke `%LOCALAPPDATA%\Programs\JakForge Studio`
+- mendaftarkan native messaging host untuk **Chrome, Edge, dan Brave** (HKCU)
+- mendaftarkan ekstensinya lewat `.crx` yang sudah ditandatangani
+- membuat pintasan Start Menu dan Desktop
+- mendaftarkan entri di Settings → Apps, lengkap dengan pencopotnya
+
+Yang tersisa untuk Anda: **satu klik**. Saat peramban dijalankan berikutnya, ia
+menampilkan gelembung "Ekstensi baru ditambahkan" — tekan **Aktifkan**.
+
+Konfirmasi itu tidak bisa dilewati tanpa hak administrator, dan itu memang
+disengaja Google: kalau ada jalannya, program apa pun bisa menanam ekstensi di
+peramban orang tanpa sepengetahuannya. Yang berhasil dihilangkan adalah
+Developer mode dan "Load unpacked" — dulu keduanya wajib.
+
+### Membuat installernya
+
+Di komputer pengembangan, satu perintah:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\buat-installer.ps1
+```
+
+Skripnya membangun solution, memaketkan ekstensi jadi `.crx` dengan kunci
+privat Anda, mengemas seluruh keluaran build jadi `payload.zip`, lalu
+menanamnya sebagai resource di dalam `JakForgeStudioSetup.exe`.
+
+Kunci privatnya dicari di `%LOCALAPPDATA%\JakForge\kunci-penandatangan\`.
+Kunci itu **tidak** ikut dikemas — hanya `.crx` hasilnya yang ikut.
+
+### Di mana semuanya disimpan
+
+| Isi | Tempat |
+|---|---|
+| Program | `%LOCALAPPDATA%\Programs\JakForge Studio` |
+| Setelan, basis data, tata letak, plugin | `%LOCALAPPDATA%\JakForge\Studio` |
+| **Project Anda** | `Documents\JakForge\<Nama Project>` |
+
+Tidak ada satu pun yang menyentuh `Program Files` atau `HKEY_LOCAL_MACHINE`,
+dan itulah satu-satunya alasan pemasangan ini tidak meminta admin.
+
+Documents sekarang berisi **project saja**. Setelan, `_shared`, dan `_orphans`
+pindah ke folder data — dulu semuanya bercampur di satu folder, dan yang
+tenggelam justru satu-satunya isi yang benar-benar milik Anda.
+
+Data dari pemasangan lama di `Documents\OpenRPA` **disalin** otomatis saat
+Studio pertama kali dijalankan. Disalin, bukan dipindah: kalau ada yang
+meleset, aslinya masih utuh.
+
+### Mencopot
+
+Settings → Apps → JakForge Studio → Uninstall. Yang dihapus: program,
+pintasan, pendaftaran peramban. Yang **tidak** dihapus: project dan setelan
+Anda — keduanya berisi pekerjaan, jadi penghapusannya diserahkan kepada Anda.
 
 ---
+
+# Cara panjang: memasang dari sumber
+
+Berguna kalau Anda memang sedang mengembangkan Studio di komputer itu.
 
 ## 1. Bangun
 
@@ -72,7 +135,9 @@ powershell -ExecutionPolicy Bypass -File .\pasang-jembatan-chrome.ps1
 
 **Tanpa hak administrator.** Skripnya:
 
-- mencari `Studio.NativeHost.exe` (Release, lalu Debug, lalu `debug\net462`);
+- mencari `Studio.NativeHost.exe` dan memilih yang **paling baru**, bukan
+  urutan tetap — mencetak semua calon beserta tanggalnya supaya pilihannya
+  bisa diperiksa;
 - menulis manifest native messaging dengan jalur yang **dihitung**, bukan
   ditulis tangan;
 - mendaftarkannya untuk Chrome, Edge, dan Brave sekaligus.
@@ -97,8 +162,12 @@ berkasnya — ID-nya tidak dihitung ulang, jadi field `key` yang baru tidak
 dilirik.
 
 Yang terjadi kemudian: Chrome membuat entri **kedua** dengan ID yang benar,
-sementara entri lama tetap terdaftar dalam keadaan nonaktif. Buang entri
-lama lewat tombol **Remove**.
+sementara entri lama tetap terdaftar dalam keadaan nonaktif.
+
+Membuang yang lama saja **tidak cukup**, dan ini sudah terbukti di lapangan.
+Selama masih ada dua entri yang menunjuk satu folder, Chrome gagal memuat
+folder itu sama sekali — lihat "Dua catatan untuk satu folder" di bawah.
+**Remove keduanya**, lalu **Load unpacked** sekali lagi.
 
 ID-nya harus **`ofhgclecgpimnjjnegogaeikmfjicnib`**. Kalau berbeda, berarti
 field `key` di `Extension\manifest.json` ikut terubah.
@@ -165,7 +234,7 @@ Google akan meminta penjelasan tertulis, yang normal untuk alat automasi.
 | `jwt`, `password`, `entropy` | Kredensial; `entropy` terikat ke akun Windows yang membuatnya |
 | `mainwindow_position` | Ukuran layar berbeda; jendelanya bisa muncul di luar layar |
 | `designerlayout`, `layout.config` | Tata letak panel, milik selera masing-masing |
-| `Extension\kunci-privat.pem` | Kunci penanda tangan; hanya perlu kalau nanti dipaketkan jadi `.crx` |
+| Kunci privat ekstensi | Kunci penanda tangan; hanya perlu kalau nanti dipaketkan jadi `.crx`. Sudah dipindah **keluar** dari folder `Extension`, ke `%LOCALAPPDATA%\JakForge\kunci-penandatangan\` — folder `Extension` itulah yang dimuat Chrome dan yang disalin orang ke komputer lain, jadi kunci yang menganggur di dalamnya ikut tersalin ke mana-mana |
 
 Untuk memindahkan **workflow**, ekspor proyeknya dari Studio
 (Design → Proyek → Export), atau salin `offline.db` secara sadar — bukan
@@ -175,13 +244,108 @@ lewat git.
 
 ## Kalau perintah browser diam saja
 
-Urutan pemeriksaan, dari yang paling sering:
+### Yang PERTAMA harus dicurigai: peramban belum dijalankan ulang
 
-1. **ID ekstensi tidak cocok.** Buka `chrome://extensions`, bandingkan
-   dengan ID di atas.
-2. **Native host tidak terdaftar.** Jalankan ulang skrip pemasangannya;
-   ia mencetak jalur yang dipakainya.
-3. **`.exe`-nya belum dibangun.** Manifest menunjuk berkas yang tidak ada,
-   dan Chrome gagal tanpa keterangan yang berguna.
-4. **Ekstensi belum di-reload** sesudah `background.js` berubah. Chrome
-   tidak memuat ulang service worker sendiri.
+Peramban membaca daftar native messaging host **sekali saat dijalankan**.
+Pendaftaran yang dibuat selagi peramban berjalan tidak terlihat olehnya, dan
+jawabannya menyesatkan:
+
+```
+Specified native messaging host not found.
+```
+
+— untuk nama yang jelas-jelas ada di registry, dengan manifest yang sah.
+**Menekan Reload pada ekstensi tidak menolong**; yang perlu dimuat ulang adalah
+perambannya. Tutup semua jendela, semua profil, lalu buka lagi.
+
+Skrip pemasangan sekarang memperingatkan ini sendiri kalau peramban sedang
+berjalan, dan `-Periksa` menandainya sebagai `[GAGAL] urutan`.
+
+### Cara tercepat mendapat jawaban: tanya Chrome
+
+Menebak dari sisi ekstensi memakan waktu berjam-jam; Chrome bisa ditanya
+langsung. Tutup Chrome, lalu jalankan:
+
+```powershell
+& "C:\Program Files\Google\Chrome\Application\chrome.exe" --enable-logging --v=1
+```
+
+Sesudah ekstensinya mencoba menyambung, alasannya ada di
+`%LOCALAPPDATA%\Google\Chrome\User Data\chrome_debug.log`:
+
+```
+WARNING:launch_context.cc] Can't find manifest for native messaging host <nama>
+```
+
+Itu memberi tahu apakah Chrome menemukan manifestnya atau tidak — perbedaan
+yang tidak bisa disimpulkan dari pesan di console ekstensi.
+
+### Kalau Chrome tetap "Can't find manifest" padahal registry benar
+
+Ini pernah terjadi, dan sampai sekarang belum ada penjelasannya. Pada satu
+mesin, Chrome 152 berhenti membaca pendaftaran **tingkat-pengguna** (HKCU)
+sama sekali: satu nama host yang didaftarkan ke lima cabang registry sekaligus
+tetap dijawab "Can't find manifest", sementara HKLM — satu-satunya tempat yang
+masih dibacanya — tidak bisa ditulis tanpa hak administrator.
+
+Yang sudah diperiksa dan TIDAK menjelaskannya: nama host, bentuk dan
+penyandian manifest, ACL berkas, akun Windows dan SID proses Chrome, urutan
+penyalaan, kebijakan (registry, cloud, kedua tampilan registry — log Chrome
+sendiri berbunyi *"No machine level policy manager exists"* dan *"No policy
+found on disk"*), catatan ekstensi di profil, dan versi Chrome.
+
+Kalau ini terjadi, jangan habiskan waktu di mesin itu. Uji di komputer lain
+lebih dulu — gejalanya tidak muncul di mesin yang belum pernah dipakai
+bereksperimen dengan pendaftaran native messaging.
+
+## Kalau perintah browser masih diam juga
+
+Jangan menebak. Jalankan:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\pasang-jembatan-chrome.ps1 -Periksa
+```
+
+Mode ini tidak mengubah apa pun. Ia memeriksa keenam sambungan yang harus
+benar bersamaan — `.exe`, manifest native host, kunci registry, ID ekstensi,
+catatan ekstensi di profil peramban, dan service worker yang benar-benar
+berjalan — lalu menuliskan apa yang perlu dibereskan.
+
+Alasan mode ini ada: keenamnya punya gejala yang **sama persis**, yaitu
+Studio berkata "tidak bisa terhubung ke native host dalam 5 detik". Tanpa
+alat, membedakannya berarti menebak satu per satu.
+
+### Dua catatan untuk satu folder
+
+Ini yang paling sulit dikenali, dan yang paling mungkin terjadi tepat setelah
+`key` ditambahkan ke `Extension\manifest.json`.
+
+Satu folder unpacked hanya boleh dipegang **satu** catatan di profil Chrome.
+Menambahkan `key` mengubah ID ekstensinya, tetapi catatan lama tetap memegang
+folder yang sama. Sejak itu Chrome gagal memuat foldernya dan hanya menulis
+satu baris ke `chrome_debug.log`:
+
+```
+WARNING:load_error_reporter.cc] Failed to load extension from: ...\Extension.
+```
+
+Di layar `chrome://extensions`, ekstensinya tetap tampak terpasang dan aktif.
+Registry benar, manifest benar, `.exe` benar — dan tidak ada yang berjalan.
+`Studio.NativeHost.exe` tidak pernah dijalankan Chrome, jadi named pipe-nya
+tidak pernah ada, jadi setiap activity browser gagal.
+
+Perbaikannya manual dan hanya sekali:
+
+1. buka `chrome://extensions`
+2. **Remove** *semua* entri "Studio Automation Bridge" — termasuk yang
+   kelihatan aktif, bukan cuma yang nonaktif
+3. **Load unpacked** → pilih folder `Extension`
+4. jalankan lagi `-Periksa` untuk memastikan semuanya hijau
+
+### Penyebab lain yang pernah benar-benar terjadi
+
+| Gejala | Sebab |
+|---|---|
+| Terpasang rapi, tetap tidak nyambung | manifest native host ditulis dengan **BOM**; pengurai JSON Chrome menolaknya tanpa pesan |
+| Nyambung tapi perintahnya aneh | yang terdaftar `.exe` **Release** yang tertinggal berminggu-minggu, bukan Debug yang baru dibangun |
+| Berubah setelah `background.js` disunting | Chrome tidak memuat ulang service worker sendiri; tekan **Reload** di `chrome://extensions` |

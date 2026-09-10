@@ -1,0 +1,254 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!--
+        Tema JakForge.
+
+        Semua warna di sini diambil dengan mengukur piksel mockup yang kamu
+        kirim, bukan dikira-kira: krem latar, cokelat tua landasan tempa,
+        cokelat sedang roda gigi, dan warna batang progres semuanya hasil
+        sampling langsung dari gambar itu.
+
+        Aturan pakai: JANGAN menulis warna literal di window atau kontrol lain.
+        Ambil dari sini supaya satu perubahan cukup diketik sekali.
+    -->
+
+
+
+    <!--
+        Mockup memakai huruf geometris berujung bulat. Century Gothic adalah
+        padanan terdekat yang benar-benar ada di Windows; kalau mesin lain tidak
+        punya, urutan cadangannya turun ke Segoe UI sehingga tata letak tetap
+        utuh, cuma bentuk hurufnya yang berbeda.
+    -->
+    <FontFamily x:Key="JF.FontDisplay">Century Gothic, Segoe UI Variable Display, Segoe UI</FontFamily>
+    <FontFamily x:Key="JF.FontBody">Segoe UI, Century Gothic</FontFamily>
+
+    <CornerRadius x:Key="JF.CornerCard">12</CornerRadius>
+    <CornerRadius x:Key="JF.CornerPill">22</CornerRadius>
+
+    <Style x:Key="JF.Heading" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource JF.FontDisplay}" />
+        <Setter Property="FontSize" Value="34" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="JF.SectionTitle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource JF.FontDisplay}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+    </Style>
+
+    <Style x:Key="JF.Body" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource JF.FontBody}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{DynamicResource JF.TextMuted}" />
+    </Style>
+
+    <Style x:Key="JF.PrimaryButton" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource JF.Brown700}" />
+        <Setter Property="Foreground" Value="{DynamicResource JF.Cream}" />
+        <Setter Property="FontFamily" Value="{StaticResource JF.FontBody}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="20,10" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" Background="{TemplateBinding Background}"
+                            CornerRadius="{StaticResource JF.CornerPill}"
+                            Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Brown500}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="bd" Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="JF.GhostButton" TargetType="Button" BasedOn="{StaticResource JF.PrimaryButton}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{DynamicResource JF.Border}" BorderThickness="1"
+                            CornerRadius="8" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Accent}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ================= Bilah judul dan bilah JakForge ================= -->
+
+    <Geometry x:Key="JF.Ico.Play">M8.5,5.6 L17.5,12 L8.5,18.4 Z</Geometry>
+    <Geometry x:Key="JF.Ico.Chevron">M6,9.5 L12,15.5 L18,9.5</Geometry>
+    <Geometry x:Key="JF.Ico.Save">M5,5.5 L15.5,5.5 L19,9 L19,18.5 L5,18.5 Z M8.5,5.5 L8.5,10 L15,10 L15,5.5 M8.5,18.5 L8.5,13.5 L15.5,13.5 L15.5,18.5</Geometry>
+    <Geometry x:Key="JF.Ico.Branch">M7,7 A2,2 0 1,0 7.01,7 Z M7,9 L7,15 M7,17 A2,2 0 1,0 7.01,17 Z M17,7 A2,2 0 1,0 17.01,7 Z M17,9 C17,13 12,11.5 12,15.6</Geometry>
+    <Geometry x:Key="JF.Ico.Home">M4,11 L12,4.5 L20,11 M6,10 L6,19.5 L10.5,19.5 L10.5,14 L13.5,14 L13.5,19.5 L18,19.5 L18,10</Geometry>
+    <Geometry x:Key="JF.Ico.Menu">M4,7 L20,7 M4,12 L20,12 M4,17 L20,17</Geometry>
+
+    <!--
+        Tombol jendela (minimalkan, perbesar, tutup) yang menyatu dengan bilah
+        JakForge berlatar krem. Glyph-nya memakai Segoe MDL2 Assets, huruf ikon
+        bawaan Windows 10/11, jadi tidak perlu berkas gambar.
+    -->
+    <Style x:Key="JF.WindowButton" TargetType="Button">
+        <Setter Property="Width" Value="46" />
+        <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Accent}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="JF.WindowButtonClose" TargetType="Button" BasedOn="{StaticResource JF.WindowButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" Background="Transparent">
+                        <ContentPresenter x:Name="cp" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#C0392B" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="JF.HeaderPrimary" TargetType="Button">
+        <Setter Property="Foreground" Value="{DynamicResource JF.Cream}" />
+        <Setter Property="FontFamily" Value="{StaticResource JF.FontBody}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="16,9" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" Background="Transparent" CornerRadius="9" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#5C4832" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="bd" Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        Tab HOME / DESIGN / DEBUG di kepala jendela.
+
+        Bentuknya tab, bukan tombol: yang sedang aktif diberi garis bawah tebal
+        dan latar terang, seperti tab pita UiPath Studio. Keadaan aktif ditandai
+        lewat properti Tag ("on") supaya bisa disetel dari code-behind tanpa
+        perlu kelas kontrol tersendiri.
+    -->
+    <Style x:Key="JF.HeaderTab" TargetType="Button">
+        <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+        <Setter Property="FontFamily" Value="{StaticResource JF.FontBody}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="11,9" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="bd" Background="Transparent" CornerRadius="7,7,0,0"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <Border x:Name="underline" Height="3" VerticalAlignment="Bottom"
+                                Background="Transparent" CornerRadius="2" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Accent}" />
+                        </Trigger>
+                        <Trigger Property="Tag" Value="on">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Accent}" />
+                            <Setter TargetName="underline" Property="Background" Value="{DynamicResource JF.Brown700}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource JF.TextMuted}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="JF.HeaderGhost" TargetType="Button" BasedOn="{StaticResource JF.HeaderPrimary}">
+        <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" Background="Transparent" CornerRadius="9" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Accent}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource JF.TextMuted}" />
+                            <Setter TargetName="bd" Property="Opacity" Value="0.6" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="JF.Card" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource JF.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource JF.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource JF.CornerCard}" />
+        <Setter Property="Padding" Value="18" />
+    </Style>
+
+</ResourceDictionary>

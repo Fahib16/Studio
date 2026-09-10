@@ -74,6 +74,16 @@
     <EmbeddedResource Include="Resources\toolbox\shownotification.png" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Wajib disebut EKSPLISIT, walau kodenya sendiri tidak memakai tuple.
+         Proyek .NET Framework yang memakai pustaka netstandard2.0 dilengkapi
+         MSBuild dengan shim System.ValueTuple 4.0.2.0 dari
+         Microsoft.NET.Build.Extensions. Seluruh proyek menyalin ke SATU folder
+         keluaran, jadi proyek yang membangun TERAKHIR menentukan versi yang
+         mendarat, dan shim itu menimpa 4.0.3.0 yang diminta OpenRPA, membuat
+         pemuatan gagal dengan "manifest definition does not match".
+         Menyebut paketnya secara eksplisit membuat proyek ini menyalin 4.0.3.0
+         juga, sehingga siapa pun yang terakhir hasilnya sama. -->
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="Forge.Forms" Version="1.1.4" />
     <PackageReference Include="ToastNotifications" Version="2.5.1" />
     <PackageReference Include="ToastNotifications.Messages" Version="2.5.1" />

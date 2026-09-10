@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{363BF5E8-42B2-43E0-9D4F-0B4F808D280C}</ProjectGuid>
+    <OutputType>library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Custom.Excel</RootNamespace>
+    <AssemblyName>Custom.Excel</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <!-- WPF project type guid WAJIB ada; tanpa ini XAML ActivityDesigner tidak
+         ikut dikompilasi dan tag sap:ActivityDesigner dianggap tidak dikenal. -->
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- ClosedXML versinya HARUS sama dengan yang sudah ada di folder output
+         (0.105.1, dibawa OpenRPA lewat PackageReference). Private=False supaya
+         berkasnya TIDAK disalin ulang dari sini — satu-satunya salinan tetap
+         milik OpenRPA, jadi tidak mungkin ada dua versi di folder yang sama. -->
+    <Reference Include="ClosedXML">
+      <HintPath>..\packages\ClosedXML.0.105.1\lib\netstandard2.0\ClosedXML.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="netstandard" />
+    <Reference Include="System" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.Activities.Presentation" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Activities\ExcelWorkbookHandle.cs" />
+    <Compile Include="Activities\ExcelActivityBase.cs" />
+    <Compile Include="Activities\ReadRange.cs" />
+    <Compile Include="Activities\ReadRangeDesigner.xaml.cs">
+      <DependentUpon>ReadRangeDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ExcelApplicationScope.cs" />
+    <Compile Include="Activities\ExcelApplicationScopeDesigner.xaml.cs">
+      <DependentUpon>ExcelApplicationScopeDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\WriteRange.cs" />
+    <Compile Include="Activities\WriteRangeDesigner.xaml.cs">
+      <DependentUpon>WriteRangeDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\AppendRange.cs" />
+    <Compile Include="Activities\AppendRangeDesigner.xaml.cs">
+      <DependentUpon>AppendRangeDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ReadCell.cs" />
+    <Compile Include="Activities\ReadCellDesigner.xaml.cs">
+      <DependentUpon>ReadCellDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\WriteCell.cs" />
+    <Compile Include="Activities\WriteCellDesigner.xaml.cs">
+      <DependentUpon>WriteCellDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\SaveWorkbook.cs" />
+    <Compile Include="Activities\SaveWorkbookDesigner.xaml.cs">
+      <DependentUpon>SaveWorkbookDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ReadRangeWorkbook.cs" />
+    <Compile Include="Activities\ReadRangeWorkbookDesigner.xaml.cs">
+      <DependentUpon>ReadRangeWorkbookDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="Activities\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Activities\ReadRangeWorkbookDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\SaveWorkbookDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WriteCellDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ReadCellDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\AppendRangeDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WriteRangeDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ExcelApplicationScopeDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ReadRangeDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Tombol pemilih berkas/folder pada kartu activity (PathDesignerBase). -->
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj">
+      <Project>{5aaa6277-bdc9-4b24-950b-eb7a43ab948a}</Project>
+      <Name>OpenRPA.Interfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Resources\ResFinder.cs" />
+    <EmbeddedResource Include="Resources\appendrange.png">
+      <LogicalName>Custom.Excel.Resources.appendrange.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\excelscope.png">
+      <LogicalName>Custom.Excel.Resources.excelscope.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\readcell.png">
+      <LogicalName>Custom.Excel.Resources.readcell.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\readrange.png">
+      <LogicalName>Custom.Excel.Resources.readrange.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\readrangeworkbook.png">
+      <LogicalName>Custom.Excel.Resources.readrangeworkbook.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\saveworkbook.png">
+      <LogicalName>Custom.Excel.Resources.saveworkbook.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\writecell.png">
+      <LogicalName>Custom.Excel.Resources.writecell.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\writerange.png">
+      <LogicalName>Custom.Excel.Resources.writerange.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Resource Include="Resources\appendrange.png" />
+    <Resource Include="Resources\excelscope.png" />
+    <Resource Include="Resources\readcell.png" />
+    <Resource Include="Resources\readrange.png" />
+    <Resource Include="Resources\readrangeworkbook.png" />
+    <Resource Include="Resources\saveworkbook.png" />
+    <Resource Include="Resources\writecell.png" />
+    <Resource Include="Resources\writerange.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

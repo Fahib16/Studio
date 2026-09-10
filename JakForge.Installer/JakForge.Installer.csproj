@@ -1,0 +1,82 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net462</TargetFramework>
+    <RootNamespace>JakForge.Installer</RootNamespace>
+    <AssemblyName>JakForgeStudioSetup</AssemblyName>
+    <Product>JakForge</Product>
+    <AssemblyTitle>Pemasang JakForge Studio</AssemblyTitle>
+    <ApplicationIcon>..\OpenRPA\Resources\JakForge\jakforge.ico</ApplicationIcon>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <UseWindowsForms>false</UseWindowsForms>
+
+    <!--
+      Tidak menghasilkan paket NuGet, dan tidak ikut dependensi proyek lain.
+      Pemasang ini sengaja BERDIRI SENDIRI: ia tidak boleh mereferensi
+      OpenRPA.Interfaces atau apa pun dari Studio, karena berkas yang
+      dipasangnya justru berkas-berkas itu — dan pemasang yang mengunci
+      DLL yang sedang ia salin adalah pemasang yang gagal di separuh jalan.
+    -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Microsoft.CSharp diperlukan oleh kata kunci `dynamic`, yang dipakai untuk
+      memanggil COM (WScript.Shell dan Shell.Application) tanpa interop
+      assembly. Ini bagian dari .NET Framework itu sendiri, bukan paket NuGet —
+      tidak ada yang perlu diunduh, dan tidak ada yang perlu ikut dipaketkan.
+    -->
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Muatan pemasang: seluruh hasil build Studio, dikemas jadi satu ZIP oleh
+      buat-installer.ps1 sebelum proyek ini dibangun.
+
+      Condition-nya penting. Tanpa itu, membuka OpenRPA.sln di komputer yang
+      belum pernah menjalankan skrip pengemasan akan GAGAL BUILD dengan pesan
+      "berkas payload.zip tidak ditemukan" — dan yang gagal bukan cuma proyek
+      ini, melainkan seluruh solution. Pemasang tanpa muatan tetap boleh
+      terbentuk; ia akan menolak jalan dengan pesan yang jelas.
+    -->
+    <EmbeddedResource Include="payload.zip" Condition="Exists('payload.zip')">
+      <LogicalName>payload.zip</LogicalName>
+    </EmbeddedResource>
+    <!--
+      Lambang dan wordmark DIPISAH, tidak memakai logo_full.png.
+
+      Berkas logo_full.png di repositori ini sendiri terpotong: huruf "J" pada
+      "JakForge" hilang di tepi kiri kanvasnya, jadi apa pun yang menampilkannya
+      akan menulis "akForge". Dua berkas di bawah utuh.
+    -->
+    <Resource Include="..\OpenRPA\Resources\JakForge\logo_mark.png">
+      <Link>Resources\logo_mark.png</Link>
+    </Resource>
+    <Resource Include="..\OpenRPA\Resources\JakForge\logo_wordmark.png">
+      <Link>Resources\logo_wordmark.png</Link>
+    </Resource>
+  </ItemGroup>
+
+</Project>

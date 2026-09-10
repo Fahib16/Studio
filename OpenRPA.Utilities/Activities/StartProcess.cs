@@ -19,8 +19,8 @@ using System.Windows;
 namespace OpenRPA.Utilities
 {
     [Designer(typeof(StartProcessDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.startprocess.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_startprocess.png")]
     public class StartProcess : CodeActivity
     {
         [RequiredArgument, Category("Input"), Description("The full filename and path to the executable to start")]

@@ -19,8 +19,8 @@ using System.Windows;
 namespace OpenRPA.Utilities
 {
     [Designer(typeof(SetAllRowsAddedDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.setallrowsstate.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_setallrowsstate.png")]
     public class SetAllRowsState : CodeActivity
     {
         [RequiredArgument]

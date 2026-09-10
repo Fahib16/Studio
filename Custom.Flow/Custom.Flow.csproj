@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <!--
+    Kategori toolbox "Orchestrator": activity yang menghubungkan workflow ke
+    ForgeHub, plus Invoke Workflow milik JakForge sendiri.
+
+    Proyek ini SENGAJA tidak merujuk OpenRPA maupun OpenRPA.Interfaces. Activity
+    di sini harus bisa berjalan di Studio DAN di JakRunner, dan JakRunner
+    dirancang untuk berdiri sendiri tanpa membawa serta seluruh Studio.
+  -->
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8D51F2A7-63C4-42BE-9A0F-1E7B54C39D82}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Custom.Flow</RootNamespace>
+    <AssemblyName>Custom.Flow</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.Activities.Presentation" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Activities\ControlActivities.cs" />
+    <Compile Include="Activities\JakForgeLoop.cs" />
+    <Compile Include="Activities\LoopActivities.cs" />
+    <Compile Include="Activities\BreakDesigner.xaml.cs">
+      <DependentUpon>BreakDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\BreakableDoWhileDesigner.xaml.cs">
+      <DependentUpon>BreakableDoWhileDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\BreakableWhileDesigner.xaml.cs">
+      <DependentUpon>BreakableWhileDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\CommentOutDesigner.xaml.cs">
+      <DependentUpon>CommentOutDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ContinueDesigner.xaml.cs">
+      <DependentUpon>ContinueDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ForEachDataRowDesigner.xaml.cs">
+      <DependentUpon>ForEachDataRowDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ForEachOfDesigner.xaml.cs">
+      <DependentUpon>ForEachOfDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\ResFinder.cs" />
+    <Compile Include="Activities\SignalActivities.cs" />
+    <Compile Include="Activities\WaitForSignalDesigner.xaml.cs">
+      <DependentUpon>WaitForSignalDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\RaiseSignalDesigner.xaml.cs">
+      <DependentUpon>RaiseSignalDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Activities\RaiseSignalDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WaitForSignalDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\BreakDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\BreakableDoWhileDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\BreakableWhileDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\CommentOutDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ContinueDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ForEachDataRowDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ForEachOfDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\raisesignal.png"><LogicalName>Custom.Flow.Resources.raisesignal.png</LogicalName></EmbeddedResource>
+    <Resource Include="Resources\raisesignal.png" />
+    <EmbeddedResource Include="Resources\waitsignal.png"><LogicalName>Custom.Flow.Resources.waitsignal.png</LogicalName></EmbeddedResource>
+    <Resource Include="Resources\waitsignal.png" />
+    <Resource Include="Resources\break.png">
+      <LogicalName>Custom.Flow.Resources.break.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\breakabledowhile.png">
+      <LogicalName>Custom.Flow.Resources.breakabledowhile.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\breakablewhile.png">
+      <LogicalName>Custom.Flow.Resources.breakablewhile.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\commentout.png">
+      <LogicalName>Custom.Flow.Resources.commentout.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\continue.png">
+      <LogicalName>Custom.Flow.Resources.continue.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\foreachdatarow.png">
+      <LogicalName>Custom.Flow.Resources.foreachdatarow.png</LogicalName>
+    </Resource>
+    <Resource Include="Resources\foreachof.png">
+      <LogicalName>Custom.Flow.Resources.foreachof.png</LogicalName>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- RobotLog dan PathDesignerBase. Custom.Shared tidak merujuk apa pun. -->
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.WinFx.targets" Condition="'$(TargetFrameworkVersion)' == 'v3.0'" />
+</Project>

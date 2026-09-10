@@ -14,9 +14,26 @@
         Loaded="Window_Loaded" Closed="Window_Closed" Closing="Window_Closing" StateChanged="Window_StateChanged" PreviewMouseWheel="SearchBox_PreviewMouseWheel"
         KeyDown="Window_KeyDown" Name="TheMainWindow"
         KeyUp="Window_KeyUp"
-        Title="OpenRPA"
+        Title="JakForge"
+        Icon="/OpenRPA;component/Resources/JakForge/jakforge.ico"
         x:Uid="title"
+        WindowStyle="None"
          Height="750" Width="1200">
+
+    <!--
+        Jendela ini tidak memakai bilah judul Windows. Bilah JakForge di baris 0
+        yang merangkap bilah judul: tinggi caption WindowChrome disamakan dengan
+        tinggi bilah itu, sehingga menyeretnya memindahkan jendela.
+
+        WindowChrome dipakai alih-alih AllowsTransparency supaya perilaku bawaan
+        Windows tetap utuh: ubah ukuran dari tepi, snap, dan maximize yang
+        berhenti tepat di taskbar.
+    -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="60" ResizeBorderThickness="6"
+                      GlassFrameThickness="0" CornerRadius="0"
+                      UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <local:BindingProxy x:Key="proxy" Data="{Binding}" />
@@ -24,18 +41,228 @@
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition  Height="120" />
+            <RowDefinition Height="60" />
+            <RowDefinition Height="Auto" />
             <RowDefinition />
             <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
-        <Ribbon DockPanel.Dock="Top" Margin="0,-22,0,0" Grid.Row="0" PreviewMouseWheel="SearchBox_PreviewMouseWheel" x:Name="MainRibbon">
+
+        <!--
+            Baris 0: bilah JakForge. Bilah ini sekaligus menjadi bilah judul —
+            tidak ada lagi lajur gelap terpisah di atasnya. Menyeret bilah ini
+            memindahkan jendela (diatur WindowChrome.CaptionHeight), sedangkan
+            tombol-tombolnya ditandai IsHitTestVisibleInChrome supaya tetap bisa
+            diklik dan tidak ikut menyeret.
+        -->
+        <Border x:Name="JfHeaderBar" Grid.Row="0" Background="{DynamicResource JF.Cream}" BorderBrush="{DynamicResource JF.Border}"
+                BorderThickness="0,0,0,1">
+            <!--
+                Dua lajur, bukan dua panel bertumpuk: lajur kiri boleh menyusut
+                dan namanya dipotong dengan elipsis, sementara tombol di kanan
+                selalu utuh. Versi bertumpuk membuat "Project Name" tertimpa
+                tombol Run/Debug begitu jendelanya menyempit.
+            -->
+            <Grid Margin="18,0,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center"
+                            Margin="0,0,16,0" ClipToBounds="True"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Image Source="/OpenRPA;component/Resources/JakForge/logo_mark.png" Height="28"
+                           Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <Image Source="/OpenRPA;component/Resources/JakForge/logo_wordmark.png" Height="21" Margin="9,2,0,0"
+                           Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+
+                    <Border Width="1" Height="26" Background="{DynamicResource JF.Border}" Margin="10,0" />
+
+                    <!--
+                        Tab HOME / DESIGN / DEBUG, sebaris di sebelah kiri persis
+                        seperti UiPath Studio. HOME kembali ke daftar proyek;
+                        DESIGN dan DEBUG membuka pita di tab yang bersangkutan,
+                        dan mengklik tab yang sedang aktif menutup pitanya lagi.
+                    -->
+                    <Button x:Name="TabHome" Style="{DynamicResource JF.HeaderTab}" Click="JF_Home_Click"
+                            ToolTip="Kembali ke layar Home (daftar proyek)">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{DynamicResource JF.Ico.Home}" Stroke="{DynamicResource JF.Brown900}"
+                                  StrokeThickness="1.5" Width="16" Height="16" Stretch="Uniform"
+                                  StrokeLineJoin="Round" Margin="0,0,7,0" />
+                            <TextBlock Text="HOME" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="TabDesign" Style="{DynamicResource JF.HeaderTab}" Click="JF_TabDesign_Click"
+                            ToolTip="Perkakas perancangan workflow">
+                        <TextBlock Text="DESIGN" VerticalAlignment="Center" />
+                    </Button>
+
+                    <Button x:Name="TabDebug" Style="{DynamicResource JF.HeaderTab}" Click="JF_TabDebug_Click"
+                            ToolTip="Perkakas penelusuran jalannya workflow">
+                        <TextBlock Text="DEBUG" VerticalAlignment="Center" />
+                    </Button>
+
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+
+                    <!-- Run/Debug: tombol utama + panah menu, seperti di mockup -->
+                    <Border Background="{DynamicResource JF.Brown700}" CornerRadius="9">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{DynamicResource JF.HeaderPrimary}" Click="JF_Run_Click"
+                                    ToolTip="Jalankan workflow yang sedang dibuka">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{DynamicResource JF.Ico.Play}" Stroke="{DynamicResource JF.Cream}"
+                                          StrokeThickness="1.5" Width="17" Height="17" Stretch="Uniform"
+                                          StrokeLineJoin="Round" />
+                                    <TextBlock Text="Run/Debug" Margin="9,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Border Width="1" Background="{DynamicResource JF.Brown500}" Margin="0,7" />
+                            <Button Style="{DynamicResource JF.HeaderPrimary}" Padding="9,9" Click="JF_RunMenu_Click"
+                                    ToolTip="Pilihan penelusuran">
+                                <Path Data="{DynamicResource JF.Ico.Chevron}" Stroke="{DynamicResource JF.Cream}"
+                                      StrokeThickness="1.6" Width="12" Height="12" Stretch="Uniform" />
+                                <!--
+                                    Menu ini TIDAK memakai Command dengan
+                                    CommandParameter="{Binding}". Perintah
+                                    VisualTracking dan SlowMotion milik OpenRPA
+                                    meng-cast parameternya menjadi bool, jadi
+                                    mengirim DataContext ke sana melempar
+                                    InvalidCastException. Penanganannya
+                                    dipindah ke code-behind yang memang tahu
+                                    nilai barunya.
+                                -->
+                                <Button.ContextMenu>
+                                    <ContextMenu x:Name="RunMenu">
+                                        <!-- Run  : jalan biasa, tanpa penelusuran, secepat mungkin.
+                                             Debug: jalan dengan penelusuran di kanvas.
+                                             Slow Motion: penanda, dipakai oleh Debug. -->
+                                        <MenuItem Header="Run" Click="JF_MenuRun_Click" />
+                                        <MenuItem Header="Debug" Click="JF_MenuDebug_Click" />
+                                        <Separator />
+                                        <MenuItem x:Name="MenuSlowMotion" Header="Slow Motion"
+                                                  IsCheckable="True" Click="JF_SlowMotion_Click" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Width="1" Height="26" Background="{DynamicResource JF.Border}" Margin="16,0" />
+
+                    <Button Style="{DynamicResource JF.HeaderGhost}" Click="JF_RunChild_Click"
+                            ToolTip="Jalankan di sesi anak (tanpa penelusuran di kanvas)">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{DynamicResource JF.Ico.Play}" Stroke="{DynamicResource JF.TextMuted}"
+                                  StrokeThickness="1.5" Width="17" Height="17" Stretch="Uniform" StrokeLineJoin="Round" />
+                            <TextBlock Text="Run" Margin="9,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Border Width="1" Height="26" Background="{DynamicResource JF.Border}" Margin="16,0" />
+
+                    <Button Style="{DynamicResource JF.HeaderGhost}"
+                            Command="{Binding Data.SaveCommand, Source={StaticResource proxy}}"
+                            CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"
+                            ToolTip="Simpan workflow">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{DynamicResource JF.Ico.Save}" Stroke="{DynamicResource JF.Brown900}"
+                                  StrokeThickness="1.5" Width="17" Height="17" Stretch="Uniform" StrokeLineJoin="Round" />
+                            <TextBlock Text="Save" Margin="9,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Border Width="1" Height="26" Background="{DynamicResource JF.Border}" Margin="16,0" />
+
+                    <!--
+                        Version Control ada di mockup, tapi Studio ini belum punya
+                        integrasi version control apa pun. Tombolnya ditampilkan
+                        supaya susunannya sama, dan sengaja dinonaktifkan dengan
+                        keterangan; memasang tombol yang tidak melakukan apa-apa
+                        akan lebih membingungkan.
+                    -->
+                    <Button Style="{DynamicResource JF.HeaderGhost}" IsEnabled="False"
+                            ToolTip="Belum ada integrasi version control di Studio ini.">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{DynamicResource JF.Ico.Branch}" Stroke="{DynamicResource JF.TextMuted}"
+                                  StrokeThickness="1.5" Width="17" Height="17" Stretch="Uniform" StrokeLineJoin="Round" />
+                            <TextBlock Text="Version Control" Margin="9,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Tombol jendela, kini menyatu dengan bilah ini -->
+                    <StackPanel Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Stretch">
+                        <Button Style="{DynamicResource JF.WindowButton}" Content="&#xE921;" Click="JF_Minimize_Click" ToolTip="Minimalkan" />
+                        <Button Style="{DynamicResource JF.WindowButton}" Content="&#xE922;" Click="JF_Maximize_Click" ToolTip="Perbesar" />
+                        <Button Style="{DynamicResource JF.WindowButtonClose}" Content="&#xE8BB;" Click="JF_Close_Click" ToolTip="Tutup" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Ribbon DockPanel.Dock="Top" Margin="0,-22,0,0" Grid.Row="1" Visibility="Collapsed"
+                Background="{DynamicResource JF.Panel}" Foreground="{DynamicResource JF.Brown900}"
+                PreviewMouseWheel="SearchBox_PreviewMouseWheel" x:Name="MainRibbon">
+
+            <!--
+                Warna pita disetel di sini, bukan di kamus aplikasi, supaya
+                hanya berlaku untuk pita ini dan tidak merembet ke kontrol lain
+                yang kebetulan bertipe sama.
+            -->
+            <Ribbon.Resources>
+                <Style TargetType="RibbonTab">
+                    <Setter Property="Background" Value="{DynamicResource JF.Cream}" />
+                    <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+                    <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+                    <Setter Property="FontSize" Value="13" />
+                </Style>
+                <Style TargetType="RibbonGroup">
+                    <Setter Property="Background" Value="{DynamicResource JF.Cream}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource JF.Border}" />
+                    <Setter Property="Foreground" Value="{DynamicResource JF.TextMuted}" />
+                    <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+                </Style>
+                <Style TargetType="RibbonButton">
+                    <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+                    <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+                </Style>
+                <Style TargetType="RibbonMenuButton">
+                    <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+                    <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+                </Style>
+                <Style TargetType="RibbonToggleButton">
+                    <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+                    <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+                </Style>
+                <Style TargetType="RibbonCheckBox">
+                    <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+                    <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+                </Style>
+                <Style TargetType="RibbonTextBox">
+                    <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+                    <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+                </Style>
+            </Ribbon.Resources>
             <Ribbon.ApplicationMenu>
-                <RibbonApplicationMenu SmallImageSource="/OpenRPA;component/Resources/Buttons/Export.png">
-                    <RibbonApplicationMenuItem Header="{x:Static or:strings.settingsfile}" ImageSource="/OpenRPA;component/Resources/Buttons/Open.png" 
+                <RibbonApplicationMenu SmallImageSource="/OpenRPA;component/Resources/JakForge/logo_mark.png"
+                                       Background="{DynamicResource JF.Brown700}"
+                                       Foreground="{DynamicResource JF.Cream}"
+                                       BorderBrush="{DynamicResource JF.Border}">
+                    <RibbonApplicationMenuItem Header="{x:Static or:strings.settingsfile}" ImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Open.png" 
                                                Command="{Binding Data.SettingsCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
-                    <RibbonApplicationMenuItem Header="{x:Static or:strings.signout}" ImageSource="/OpenRPA;component/Resources/Buttons/Signout.png" 
+                    <!-- Bahasa dan tema. Ditaruh di menu aplikasi, bukan di pita:
+                         setelan yang diubah sekali lalu ditinggalkan tidak pantas
+                         memakan tempat di pita yang dipakai tiap hari. -->
+                    <RibbonApplicationMenuItem x:Name="MenuAppearance" Header="Tampilan"
+                                               ImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Open.png"
+                                               Click="JF_MenuAppearance_Click" />
+                    <RibbonApplicationMenuItem Header="{x:Static or:strings.signout}" ImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Signout.png" 
                                                Command="{Binding Data.SignoutCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
-                    <RibbonApplicationMenuItem Header="{x:Static or:strings.exitapplication}" ImageSource="/OpenRPA;component/Resources/Buttons/Exit.png" 
+                    <RibbonApplicationMenuItem Header="{x:Static or:strings.exitapplication}" ImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Exit.png" 
                                                Command="{Binding Data.ExitAppCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
 
 
@@ -67,74 +294,142 @@
 
                 </RibbonApplicationMenu>
             </Ribbon.ApplicationMenu>
-            <RibbonTab 
-                xmlns:local="clr-namespace:OpenRPA"  Header="{x:Static or:strings.general}" x:Name="tabGeneral"
-               
-                >
-                <RibbonGroup Header="{x:Static or:strings.files}" PreviewMouseWheel="SearchBox_PreviewMouseWheel">
-                    <RibbonMenuButton x:Name="ButtonNew" Label="{x:Static or:strings.mainnew}" LargeImageSource="/OpenRPA;component/Resources/Buttons/New.png">
-                        <RibbonMenuItem Header="{x:Static or:strings.newworkflow}"
-                                Command="{Binding Data.NewWorkflowCommand, Source={StaticResource proxy}}" 
-                                CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" KeyTip="N" />
-                        <RibbonMenuItem Header="{x:Static or:strings.newproject}"
-                                Command="{Binding Data.NewProjectCommand, Source={StaticResource proxy}}" 
-                                CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    </RibbonMenuButton>
 
-                    <RibbonButton Label="{x:Static or:strings.save}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Save.png" 
-                                  Command="{Binding Data.SaveCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" KeyTip="S" />
-                    <RibbonButton Label="{x:Static or:strings.open}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Open.png" 
-                                  Command="{Binding Data.OpenCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
-                    <RibbonButton Label="{x:Static or:strings.copy}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Copy.png" 
-                                  Command="{Binding Data.CopyCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    <RibbonButton Label="{x:Static or:strings.delete}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Delete.png" 
-                                  Command="{Binding Data.DeleteCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    <RibbonButton Label="{x:Static or:strings.permissions}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Permissions.png" 
-                                  Command="{Binding Data.PermissionsCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    <RibbonButton Label="{x:Static or:strings.main_reload}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Reload.png" 
-                                  Command="{Binding Data.ReloadCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    <RibbonButton Label="{x:Static or:strings.import}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Import.png" 
-                                  Command="{Binding Data.ImportCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    <RibbonButton Label="{x:Static or:strings.export}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Export.png" 
-                                  Command="{Binding Data.ExportCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                </RibbonGroup>
-                <RibbonGroup Header="{x:Static or:strings.runtime}">
-                    <RibbonButton Label="{x:Static or:strings.play}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Play.png" 
-                                  Command="{Binding Data.PlayCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"/>
-                    <RibbonButton Label="{x:Static or:strings.stop}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Stop.png" 
-                                  Command="{Binding Data.StopCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    <RibbonButton Label="{x:Static or:strings.record}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Record.png"
-                                  Command="{Binding Data.RecordCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    <StackPanel Orientation="Horizontal">
-                        <RibbonCheckBox IsChecked="{Binding VisualTracking}" Command="{Binding Data.VisualTrackingCommand, Source={StaticResource proxy}}" 
-                                        CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}" />
-                        <TextBlock Text="{x:Static or:strings.visualtracking}"></TextBlock>
+            <!--
+                Dua tab tambahan yang meniru susunan UiPath Studio: Design dan
+                Debug.
 
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <RibbonCheckBox IsChecked="{Binding SlowMotion}" Command="{Binding Data.SlowMotionCommand, Source={StaticResource proxy}}" 
-                                        CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"  />
-                        <TextBlock Text="{x:Static or:strings.slowmotion}"></TextBlock>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <RibbonCheckBox IsChecked="{Binding Minimize}" Command="{Binding Data.MinimizeCommand, Source={StaticResource proxy}}" 
-                                        CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"  />
-                        <TextBlock Text="{x:Static or:strings.minimize}"></TextBlock>
-                    </StackPanel>
+                ATURAN yang dipegang di sini: HANYA tombol yang benar-benar
+                terhubung ke kemampuan Studio ini yang dipasang. Fitur UiPath
+                yang tidak punya padanan (Test Manager, Remote Debugging,
+                Profile Execution, Manage Entities, Picture in Picture)
+                sengaja TIDAK dibuatkan tombol, supaya tidak ada tombol yang
+                terlihat bisa diklik padahal tidak melakukan apa-apa.
+            -->
+            <RibbonTab Header="Design" x:Name="tabDesign">
+                <RibbonGroup Header="Berkas">
+                    <RibbonButton Label="New" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/New.png"
+                                  Click="JF_Design_New" ToolTip="Workflow baru di proyek yang sedang dibuka" />
+                    <RibbonButton Label="Save" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Save.png"
+                                  Click="JF_Design_Save" ToolTip="Simpan workflow" />
+                    <RibbonButton Label="Export as&#10;Template" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Template.png"
+                                  Click="JF_Design_Export" ToolTip="Ekspor proyek menjadi berkas yang bisa dipakai ulang" />
+                    <RibbonButton Label="Publish" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Export.png"
+                                  Click="JF_Design_Export" ToolTip="Ekspor proyek (padanan Publish)" />
                 </RibbonGroup>
+
+                <RibbonGroup Header="Jalankan">
+                    <RibbonButton Label="Debug File" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Play.png"
+                                  Click="JF_Debug_Start" ToolTip="Jalankan dengan penelusuran di kanvas" />
+                    <RibbonButton Label="Stop" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Stop.png"
+                                  Click="JF_Stop_Click" ToolTip="Hentikan workflow yang sedang berjalan" />
+                </RibbonGroup>
+
+                <RibbonGroup Header="Sunting">
+                    <RibbonButton Label="Cut" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Cut.png"
+                                  Click="JF_Edit_Cut" ToolTip="Potong activity terpilih" />
+                    <RibbonButton Label="Copy" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Copy.png"
+                                  Click="JF_Edit_Copy" ToolTip="Salin activity terpilih" />
+                    <RibbonButton Label="Paste" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Paste.png"
+                                  Click="JF_Edit_Paste" ToolTip="Tempel activity" />
+                    <RibbonButton Label="Undo" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Undo.png"
+                                  Click="JF_Edit_Undo" ToolTip="Batalkan perubahan terakhir" />
+                    <RibbonButton Label="Redo" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Redo.png"
+                                  Click="JF_Edit_Redo" ToolTip="Ulangi perubahan yang dibatalkan" />
+                </RibbonGroup>
+
+                <RibbonGroup Header="Alat">
+                    <RibbonButton Label="Manage&#10;Packages" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Open.png"
+                                  Click="JF_Design_Packages" ToolTip="Kelola paket dan dependensi proyek" />
+                    <RibbonButton Label="Recording" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Record.png"
+                                  Click="JF_Design_Record" ToolTip="Rekam langkah menjadi activity" />
+                    <RibbonButton Label="UI&#10;Explorer" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Explorer.png"
+                                  Click="JF_Design_UiExplorer" ToolTip="Buka penjelajah elemen dan editor selector JakForge" />
+                    <RibbonButton Label="User&#10;Events" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Permissions.png"
+                                  Click="JF_Design_Detectors" ToolTip="Detector: menjalankan workflow saat sesuatu terjadi" />
+                </RibbonGroup>
+
+                <!--
+                    Grup di bawah ini pindahan dari tab "General" yang dibuang.
+                    Isinya operasi terhadap PROYEK dan berkasnya, jadi tempatnya
+                    memang di Design.
+                -->
+                <RibbonGroup Header="Proyek">
+                    <RibbonButton Label="Open" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Open.png"
+                                  Command="{Binding Data.OpenCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}"
+                                  ToolTip="Buka proyek" />
+                    <RibbonButton Label="Import" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Import.png"
+                                  Command="{Binding Data.ImportCommand, Source={StaticResource proxy}}"
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"
+                                  ToolTip="Impor proyek atau workflow dari berkas" />
+                    <RibbonButton Label="Export" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Export.png"
+                                  Command="{Binding Data.ExportCommand, Source={StaticResource proxy}}"
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"
+                                  ToolTip="Ekspor proyek ke berkas" />
+                    <RibbonButton Label="Reload" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Reload.png"
+                                  Command="{Binding Data.ReloadCommand, Source={StaticResource proxy}}"
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"
+                                  ToolTip="Muat ulang dari disk" />
+                </RibbonGroup>
+
+                <!--
+                    ForgeHub: menerbitkan proyek ke orkestrator.
+
+                    Semua tombol di sini tetap bisa ditekan tanpa ForgeHub yang
+                    disetel — yang muncul kemudian adalah dialog penyambungan,
+                    bukan kesalahan. Studio bekerja penuh tanpa ForgeHub.
+                -->
+                <RibbonGroup Header="ForgeHub">
+                    <!--
+                        Satu-satunya ukuran yang diizinkan.
+
+                        Tanpa ini, Ribbon menyusun sendiri beberapa varian ukuran
+                        dan grup ini termasuk yang paling awal diciutkan jadi
+                        satu tombol menu — persis nasib tombol Terbitkan pada
+                        percobaan sebelumnya, tersembunyi di balik panah meski
+                        layarnya lebar. Dengan hanya satu varian, Ribbon tidak
+                        punya pilihan untuk mengecilkannya.
+                    -->
+                    <RibbonGroup.GroupSizeDefinitions>
+                        <RibbonGroupSizeDefinition>
+                            <RibbonControlSizeDefinition ImageSize="Large" IsLabelVisible="True" />
+                            <RibbonControlSizeDefinition ImageSize="Small" IsLabelVisible="True" />
+                            <RibbonControlSizeDefinition ImageSize="Small" IsLabelVisible="True" />
+                        </RibbonGroupSizeDefinition>
+                    </RibbonGroup.GroupSizeDefinitions>
+
+                    <RibbonButton Label="Terbitkan" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Export.png"
+                                  Command="{Binding Data.ForgeHubPublishCommand, Source={StaticResource proxy}}"
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"
+                                  ToolTip="Kemas proyek ini dan kirim ke ForgeHub sebagai paket" />
+                    <RibbonButton Label="Sambungkan" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Permissions.png"
+                                  Command="{Binding Data.ForgeHubConnectCommand, Source={StaticResource proxy}}"
+                                  ToolTip="Atur alamat, nama pengguna, dan kata sandi ForgeHub" />
+                    <RibbonButton Label="Buka Dasbor" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Open.png"
+                                  Command="{Binding Data.ForgeHubOpenCommand, Source={StaticResource proxy}}"
+                                  ToolTip="Buka dasbor ForgeHub di peramban" />
+                </RibbonGroup>
+
+                <RibbonGroup Header="Kelola">
+                    <RibbonButton Label="Copy" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Copy.png"
+                                  Command="{Binding Data.CopyCommand, Source={StaticResource proxy}}"
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"
+                                  ToolTip="Gandakan workflow atau proyek terpilih" />
+                    <RibbonButton Label="Delete" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Delete.png"
+                                  Command="{Binding Data.DeleteCommand, Source={StaticResource proxy}}"
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"
+                                  ToolTip="Hapus workflow atau proyek terpilih" />
+                    <RibbonButton Label="Permissions" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Permissions.png"
+                                  Command="{Binding Data.PermissionsCommand, Source={StaticResource proxy}}"
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"
+                                  ToolTip="Atur hak akses" />
+                </RibbonGroup>
+
+                <!-- Kotak pencarian cepat; namanya tetap SearchBox karena
+                     dipakai code-behind untuk Quick Launch. -->
                 <RibbonGroup Header="{x:Static or:strings.ribbon_search}">
-                    <input:AutoCompleteBox Width="80"
-                                           x:Name="SearchBox" 
+                    <input:AutoCompleteBox Width="140"
+                                           x:Name="SearchBox"
                                            FilterMode="None"
                                            IsTextCompletionEnabled="False"
                                            Placeholder="{x:Static or:strings.ribbon_search}"
@@ -143,8 +438,7 @@
                                            MinimumPopulateDelay="200"
                                            ValueMemberPath="name"
                                            PreviewLostKeyboardFocus="SearchBox_PreviewLostKeyboardFocus"
-                                           KeyUp="SearchBox_KeyUp"
-            >
+                                           KeyUp="SearchBox_KeyUp">
                         <input:AutoCompleteBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -156,17 +450,128 @@
                         </input:AutoCompleteBox.ItemTemplate>
                     </input:AutoCompleteBox>
                 </RibbonGroup>
-                <RibbonGroup Header="" Visibility="{Binding Path=Setting_ShowChildSessions, Converter={StaticResource BoolToVis}}"
-                             HorizontalAlignment="Center">
-                    <RibbonButton Label="{x:Static or:strings.childsession}" LargeImageSource="/OpenRPA;component/Resources/Buttons/picture_in_picture.png" 
-                                  Click="RibbonButton_Click"
-                                   />
-                    <RibbonButton Label="{x:Static or:strings.playinchildsession}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Play.png" 
-                                  Command="{Binding Data.PlayInChildCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"/>
+
+                <!--
+                    Grup di bawah ini pindahan dari tab Settings dan Tools yang
+                    dibuang bersama tombol hamburger. Semuanya urusan MENYIAPKAN
+                    lingkungan kerja: bahasa antarmuka, addon peramban, dan plugin.
+                -->
+                <RibbonGroup Header="{x:Static or:strings.uilanguage}">
+                    <StackPanel>
+                        <ribbon:RibbonComboBox>
+                            <ribbon:RibbonGallery SelectedItem="{Binding Path=defaultuilocal}" SelectedValuePath="Value" >
+                                <ribbon:RibbonGalleryCategory ItemsSource="{Binding uilocals}" DisplayMemberPath="Name"  />
+                            </ribbon:RibbonGallery>
+                        </ribbon:RibbonComboBox>
+                    </StackPanel>
+
+                    <!-- Bahasa dan tema JakForge.
+
+                         Ditaruh DI SINI, bersebelahan dengan pemilih locale bawaan
+                         OpenRPA, karena keduanya urusan yang sama di kepala orang
+                         yang mencarinya. Sebelumnya hanya ada di menu aplikasi di
+                         balik logo kecil tanpa tulisan, dan di situ tidak ketemu. -->
+                    <RibbonButton x:Name="BtnAppearance" Label="Tampilan"
+                                  LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Appearance.png"
+                                  ToolTip="Bahasa dan mode gelap, dipakai bersama JakRunner"
+                                  Click="JF_MenuAppearance_Click" />
+                </RibbonGroup>
+                <RibbonGroup Header="{x:Static or:strings.browseraddons}">
+                    <RibbonButton Label="{x:Static or:strings.chrome}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/OpenChrome.png" 
+                                  Command="{Binding Data.OpenChromePageCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
+                    <RibbonButton Label="{x:Static or:strings.firefox}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/OpenFirefox.png" 
+                                  Command="{Binding Data.OpenFirefoxPageCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
+                    <RibbonButton Label="{x:Static or:strings.edge}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/OpenEdge.png" 
+                                  Command="{Binding Data.OpenEdgePageCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
+
+                </RibbonGroup>
+                <RibbonGroup Header="{x:Static or:strings.plugins}">
+                    <RibbonButton Label="{x:Static or:strings.detectors}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Open.png" 
+                                  Command="{Binding Data.DetectorsCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
+                    <RibbonButton Label="{x:Static or:strings.workitemqueues}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Open.png" 
+                                  Command="{Binding Data.WorkItemQueuesCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
+                    <RibbonButton Label="{x:Static or:strings.runplugins}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Open.png" 
+                                  Command="{Binding Data.RunPluginsCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
+                    <RibbonButton Label="{x:Static or:strings.recorderplugins}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Open.png" 
+                                  Command="{Binding Data.RecorderPluginsCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
                 </RibbonGroup>
             </RibbonTab>
-            <RibbonTab Header="{x:Static or:strings.settings}">
+
+            <RibbonTab Header="Debug" x:Name="tabDebug">
+                <RibbonGroup Header="Jalankan">
+                    <RibbonButton Label="Debug File" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Play.png"
+                                  Click="JF_Debug_Start" ToolTip="Jalankan dengan penelusuran" />
+                    <RibbonButton Label="Stop" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Stop.png"
+                                  Click="JF_Stop_Click" ToolTip="Hentikan" />
+                    <RibbonButton Label="Restart" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Reload.png"
+                                  Click="JF_Debug_Restart" ToolTip="Hentikan lalu jalankan lagi dari awal" />
+                </RibbonGroup>
+
+                <RibbonGroup Header="Langkah">
+                    <RibbonButton Label="Step" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Step.png"
+                                  Click="JF_Debug_Step" ToolTip="Jalankan satu activity lalu berhenti lagi" />
+                    <RibbonButton Label="Continue" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Continue.png"
+                                  Click="JF_Debug_Continue" ToolTip="Lanjutkan sampai breakpoint berikutnya" />
+                    <RibbonButton Label="Breakpoint" SmallImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Breakpoint.png"
+                                  Click="JF_Debug_Breakpoint" ToolTip="Pasang atau lepas breakpoint pada activity terpilih" />
+                </RibbonGroup>
+
+                <RibbonGroup Header="Penelusuran">
+                    <RibbonCheckBox x:Name="chkTrail" Label="Execution Trail"
+                                    Click="JF_Debug_Trail"
+                                    ToolTip="Sorot activity yang sedang berjalan di kanvas" />
+                    <RibbonCheckBox x:Name="chkSlowStep" Label="Slow Step"
+                                    Click="JF_Debug_SlowStep"
+                                    ToolTip="Perlambat jalannya workflow supaya mudah diikuti" />
+                    <RibbonCheckBox Label="Visual Tracking"
+                                    IsChecked="{Binding Data.VisualTracking, Source={StaticResource proxy}, Mode=TwoWay}"
+                                    ToolTip="Sorot activity yang sedang dijalankan" />
+                    <RibbonCheckBox Label="Minimize saat jalan"
+                                    IsChecked="{Binding Data.Minimize, Source={StaticResource proxy}, Mode=TwoWay}"
+                                    ToolTip="Sembunyikan Studio selama workflow berjalan" />
+                </RibbonGroup>
+
+                <RibbonGroup Header="Catatan">
+                    <RibbonButton Label="Open Logs" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Logs.png"
+                                  Click="JF_Debug_OpenLogs" ToolTip="Buka panel Output" />
+                </RibbonGroup>
+
+                <!--
+                    Pindahan dari tab "General" yang dibuang: penanda jalannya
+                    workflow dan sesi anak, keduanya urusan penelusuran.
+                -->
+                <RibbonGroup Header="Sesi Anak"
+                             Visibility="{Binding Path=Setting_ShowChildSessions, Converter={StaticResource BoolToVis}}">
+                    <RibbonButton Label="Child&#10;Session" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/picture_in_picture.png"
+                                  Click="RibbonButton_Click" ToolTip="Buka sesi anak" />
+                    <RibbonButton Label="Play in&#10;Child" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/Play.png"
+                                  Command="{Binding Data.PlayInChildCommand, Source={StaticResource proxy}}"
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}"
+                                  ToolTip="Jalankan di dalam sesi anak" />
+                </RibbonGroup>
+
+                <!--
+                    Ini menukar CARA activity bekerja saat dijalankan: SendKeys,
+                    klik virtual, dan animasi. Pengaruhnya baru terasa waktu robot
+                    berjalan, jadi tempatnya di Debug, bukan di Design.
+                -->
+                <RibbonGroup Header="{x:Static or:strings.tools_change_type}">
+                    <RibbonButton Label="{x:Static or:strings.tools_swap_sendkeys}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/swap.png" 
+                                  Command="{Binding Data.SwapSendKeysCommand, Source={StaticResource proxy}}" 
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
+                    <RibbonButton Label="{x:Static or:strings.tools_swap_virtualclick}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/swap.png" 
+                                  Command="{Binding Data.SwapVirtualClickCommand, Source={StaticResource proxy}}" 
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
+                    <RibbonButton Label="{x:Static or:strings.tools_swap_animate}" LargeImageSource="/OpenRPA;component/Resources/JakForge/ribbon/swap.png" 
+                                  Command="{Binding Data.SwapAnimateCommand, Source={StaticResource proxy}}" 
+                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
+                </RibbonGroup>
+
+                <!--
+                    Pindahan dari tab Settings: semuanya berpengaruh saat workflow
+                    DIJALANKAN — tombol batal, OCR, penanda runtime, dan tingkat
+                    pencatatan.
+                -->
                 <RibbonGroup Header="{x:Static or:strings.cancelkey}">
                     <StackPanel>
                         <TextBox x:Name="cancelkey" GotKeyboardFocus="Cancelkey_GotKeyboardFocus" Width="80" Height="25" />
@@ -182,35 +587,6 @@
                         <RibbonButton Content="{x:Static or:strings.download}" Click="TesseractLang_Click"></RibbonButton>
                     </StackPanel>
 
-                </RibbonGroup>
-                <RibbonGroup Header="{x:Static or:strings.uilanguage}">
-                    <StackPanel>
-                        <ribbon:RibbonComboBox>
-                            <ribbon:RibbonGallery SelectedItem="{Binding Path=defaultuilocal}" SelectedValuePath="Value" >
-                                <ribbon:RibbonGalleryCategory ItemsSource="{Binding uilocals}" DisplayMemberPath="Name"  />
-                            </ribbon:RibbonGallery>
-                        </ribbon:RibbonComboBox>
-                    </StackPanel>
-
-                </RibbonGroup>
-                <RibbonGroup Header="{x:Static or:strings.browseraddons}">
-                    <RibbonButton Label="{x:Static or:strings.chrome}" LargeImageSource="/OpenRPA;component/Resources/Buttons/OpenChrome.png" 
-                                  Command="{Binding Data.OpenChromePageCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
-                    <RibbonButton Label="{x:Static or:strings.firefox}" LargeImageSource="/OpenRPA;component/Resources/Buttons/OpenFirefox.png" 
-                                  Command="{Binding Data.OpenFirefoxPageCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
-                    <RibbonButton Label="{x:Static or:strings.edge}" LargeImageSource="/OpenRPA;component/Resources/Buttons/OpenEdge.png" 
-                                  Command="{Binding Data.OpenEdgePageCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
-
-                </RibbonGroup>
-                <RibbonGroup Header="{x:Static or:strings.plugins}">
-                    <RibbonButton Label="{x:Static or:strings.detectors}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Open.png" 
-                                  Command="{Binding Data.DetectorsCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
-                    <RibbonButton Label="{x:Static or:strings.workitemqueues}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Open.png" 
-                                  Command="{Binding Data.WorkItemQueuesCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
-                    <RibbonButton Label="{x:Static or:strings.runplugins}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Open.png" 
-                                  Command="{Binding Data.RunPluginsCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
-                    <RibbonButton Label="{x:Static or:strings.recorderplugins}" LargeImageSource="/OpenRPA;component/Resources/Buttons/Open.png" 
-                                  Command="{Binding Data.RecorderPluginsCommand, Source={StaticResource proxy}}" CommandParameter="{Binding}" />
                 </RibbonGroup>
                 <RibbonGroup Header="{x:Static or:strings.runtime}">
                     <StackPanel Orientation="Horizontal">
@@ -291,26 +667,13 @@
                     </StackPanel>
                 </RibbonGroup>
             </RibbonTab>
-            <RibbonTab Header="{x:Static or:strings.tools}">
-                <RibbonGroup Header="{x:Static or:strings.tools_change_type}">
-                    <RibbonButton Label="{x:Static or:strings.tools_swap_sendkeys}" LargeImageSource="/OpenRPA;component/Resources/Buttons/swap.png" 
-                                  Command="{Binding Data.SwapSendKeysCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    <RibbonButton Label="{x:Static or:strings.tools_swap_virtualclick}" LargeImageSource="/OpenRPA;component/Resources/Buttons/swap.png" 
-                                  Command="{Binding Data.SwapVirtualClickCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                    <RibbonButton Label="{x:Static or:strings.tools_swap_animate}" LargeImageSource="/OpenRPA;component/Resources/Buttons/swap.png" 
-                                  Command="{Binding Data.SwapAnimateCommand, Source={StaticResource proxy}}" 
-                                  CommandParameter="{Binding ElementName=mainTabControl,Path=SelectedContent}" />
-                </RibbonGroup>
-            </RibbonTab>
         </Ribbon>
 
 
-        <avalonDock:DockingManager Grid.Row="1" x:Name="DManager" ActiveContentChanged="DManager_ActiveContentChanged">
+        <avalonDock:DockingManager Grid.Row="2" x:Name="DManager" Background="{DynamicResource JF.Panel}" ActiveContentChanged="DManager_ActiveContentChanged">
             <avalonDock:DockingManager.Theme>
                 <!--<avalonDock:AeroTheme/>-->
-                <avalonDock:VS2010Theme/>
+                <avalonDock:GenericTheme/>
                 <!--<avalonDock:ExpressionDarkTheme/>-->
                 <!--<avalonDock:ExpressionLightTheme/>-->
                 <!--<avalonDock:GenericTheme/>-->
@@ -329,9 +692,14 @@
                     <avalonDock:LayoutAnchorablePaneGroup  DockWidth="270" Orientation="Horizontal" >
                         <avalonDock:LayoutAnchorablePane>
                             <avalonDock:LayoutAnchorable x:Name="dockToolbox"  
-                            CanClose="False" CanAutoHide="True" CanHide="False" Title="{x:Static or:strings.dock_toolbox}" ContentId="Toolbox" 
+                            CanClose="False" CanAutoHide="True" CanHide="False" Title="Aktivitas" ContentId="Toolbox" 
                             >
                                 <ContentControl Content="{Binding Toolbox}" Padding="0" Margin="0,0,0,0" />
+                            </avalonDock:LayoutAnchorable>
+
+                            <avalonDock:LayoutAnchorable x:Name="dockProject"
+                            CanClose="False" CanAutoHide="True" CanHide="False" Title="Project" ContentId="JakForgeProject">
+                                <views:JakForgeProjectView />
                             </avalonDock:LayoutAnchorable>
 
                             <avalonDock:LayoutAnchorable x:Name="dockSnippets" 
@@ -388,12 +756,12 @@
 
                                 <avalonDock:LayoutAnchorable
                                                      CanClose="False" CanAutoHide="True" CanHide="False"  x:Name="Output" Title="{x:Static or:strings.dock_output}" ContentId="Output" >
-                                    <DockPanel>
-                                        <StackPanel HorizontalAlignment="Left">
-                                            <Button DockPanel.Dock="Top" Height="20" Width="20" Click="clearOutputMessages_Click" >X</Button>
-                                        </StackPanel>
-                                        <TextBox Text="{Binding Tracing.OutputMessages}" TextWrapping="Wrap" IsReadOnly="False" Margin="0,0,0,0" ScrollViewer.VerticalScrollBarVisibility="Auto" />
-                                    </DockPanel>
+                                    <views:JakForgeOutputView />
+                                </avalonDock:LayoutAnchorable>
+
+                                <avalonDock:LayoutAnchorable
+                                                     CanClose="False" CanAutoHide="True" CanHide="False"  x:Name="dockDebug" Title="Debug" ContentId="JakForgeDebug" AutoHideMinHeight="320" >
+                                    <views:JakForgeDebugView />
                                 </avalonDock:LayoutAnchorable>
 
                                 <avalonDock:LayoutAnchorable
@@ -409,7 +777,7 @@
         </avalonDock:DockingManager>
 
 
-        <StatusBar HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="2" Height="25" Background="Gray">
+        <StatusBar HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="3" Height="25" Background="{DynamicResource JF.Sidebar}">
             <StatusBar FocusManager.IsFocusScope="True" x:Name="StatusBar">
                 <StatusBarItem>
                     <Image

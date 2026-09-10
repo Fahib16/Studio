@@ -356,6 +356,21 @@ namespace OpenRPA.Views
             };
             WorkflowDesigner.Context.Items.Subscribe(new SubscribeContextCallback<Selection>(SelectionChanged));
             WorkflowDesigner.View.Dispatcher.UnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(UnhandledException);
+
+            // Warna perancang alur kerja bawaan .NET diselaraskan dengan tema
+            // JakForge. Panel Properties lewat jalur resmi, bilah bawah dan
+            // latar kanvas dengan mengecat ulang setelah tampilannya dimuat.
+            JakForgeWorkflowTheme.ApplyPropertyInspector(WorkflowDesigner);
+            var designerView = WorkflowDesigner.View as System.Windows.FrameworkElement;
+            if (designerView != null)
+            {
+                designerView.Loaded += (s, e) =>
+                {
+                    designerView.Dispatcher.BeginInvoke(
+                        new Action(() => JakForgeWorkflowTheme.Repaint(designerView)),
+                        System.Windows.Threading.DispatcherPriority.Loaded);
+                };
+            }
             Properties = WorkflowDesigner.PropertyInspectorView;
             ModelService modelService = WorkflowDesigner.Context.Services.GetService<ModelService>();
             if (modelService == null) return;
@@ -393,7 +408,7 @@ namespace OpenRPA.Views
         {
             try
             {
-                var imagepath = System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "images");
+                var imagepath = System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "images");
                 if (!System.IO.Directory.Exists(imagepath)) System.IO.Directory.CreateDirectory(imagepath);
                 WorkflowDesigner.Flush();
                 if (global.isConnected)
@@ -1227,6 +1242,75 @@ Union(modelService.Find(modelService.Root, typeof(System.Activities.Debugger.Sta
                 Log.Error(ex.ToString());
             }
         }
+
+        /// <summary>
+        /// Laporkan kegagalan sebuah jalan: ke panel Output (dan lewat itu ke
+        /// berkas log harian) sekaligus ke layar.
+        ///
+        /// Nama activity yang gagal ikut disebut. Tanpa itu pesan seperti
+        /// "Elemen tidak ditemukan" tidak memberi tahu langkah mana yang
+        /// berhenti, dan pada workflow panjang itu berarti menebak.
+        /// </summary>
+        private void ReportRunFailure(IWorkflowInstance instance)
+        {
+            try
+            {
+                var ex = instance.Exception;
+                var message = ex != null ? ex.Message : instance.errormessage;
+                if (string.IsNullOrEmpty(message))
+                    message = "Workflow berhenti dengan status " + instance.state + ".";
+
+                var where = "";
+                try
+                {
+                    if (!string.IsNullOrEmpty(instance.errorsource) &&
+                        _activityIdModelItemMapping.ContainsKey(instance.errorsource))
+                    {
+                        var model = _activityIdModelItemMapping[instance.errorsource];
+                        var name = model.Properties["DisplayName"] != null
+                            ? model.Properties["DisplayName"].ComputedValue as string
+                            : null;
+                        if (!string.IsNullOrEmpty(name)) where = " pada \"" + name + "\"";
+                    }
+                }
+                catch (Exception) { }
+
+                Log.Error("Run GAGAL" + where + ": " + message);
+
+                var cause = ex;
+                while (cause != null && cause.InnerException != null)
+                {
+                    cause = cause.InnerException;
+                    Log.Error("   penyebab: " + cause.GetType().Name + ": " + cause.Message);
+                }
+
+                Views.JakForgeLogFile.EndRun(Workflow != null ? Workflow.name : "(workflow)",
+                                             "GAGAL" + where + " — " + message);
+
+                // Hanya untuk jalan lokal dari Studio. Jalan yang dipicu
+                // antrean berjalan tanpa siapa pun di depan layar, jadi dialog
+                // di sana hanya akan menggantung robot sampai ada yang mengklik.
+                if (!string.IsNullOrEmpty(instance.queuename)) return;
+                if (!string.IsNullOrEmpty(instance.correlationId)) return;
+
+                GenericTools.RunUI(() =>
+                {
+                    try
+                    {
+                        MessageBox.Show(
+                            message +
+                            (string.IsNullOrEmpty(where) ? "" : Environment.NewLine + Environment.NewLine + "Langkah:" + where) +
+                            Environment.NewLine + Environment.NewLine +
+                            "Rinciannya ada di panel Output dan di " + Views.JakForgeLogFile.FileForToday(),
+                            "Workflow gagal",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    catch (Exception) { }
+                });
+            }
+            catch (Exception) { }
+        }
+
         public void IdleOrComplete(IWorkflowInstance instance, EventArgs e)
         {
             if (instance == null) return;
@@ -1281,6 +1365,12 @@ Union(modelService.Find(modelService.Root, typeof(System.Activities.Debugger.Sta
                         GenericTools.Restore();
                     });
                 }
+
+                // Kegagalan dilaporkan ke panel Output DAN ke layar.
+                // Sebelumnya kegagalan hanya mengubah keadaan instance: kalau
+                // panel Output sedang tertutup, workflow terlihat "selesai
+                // begitu saja" padahal berhenti di tengah.
+                if (instance.state == "failed" || instance.state == "aborted") ReportRunFailure(instance);
 
                 if (instance.state != "idle")
                 {
@@ -1409,6 +1499,13 @@ Union(modelService.Find(modelService.Root, typeof(System.Activities.Debugger.Sta
         }
         public void Run(bool VisualTracking, bool SlowMotion, IWorkflowInstance instance)
         {
+            // Titik tolak untuk Invoke Workflow: tanpa ini, activity itu tidak
+            // tahu folder mana yang harus dicari saat mencari sub-workflow, dan
+            // ReFramework gagal pada panggilan pertama. Disetel di sini, bukan
+            // sekali di awal, karena kanvas yang berbeda bisa milik proyek
+            // yang berbeda.
+            SetOrchestratorContext();
+
             GenericTools.RunUI(() =>
            {
                this.VisualTracking = VisualTracking; this.SlowMotion = SlowMotion;
@@ -1486,6 +1583,36 @@ Union(modelService.Find(modelService.Root, typeof(System.Activities.Debugger.Sta
            });
             if (instance != null) instance.Run();
         }
+        /// <summary>
+        /// Beri tahu activity Orchestrator di proyek mana kita sedang bekerja.
+        ///
+        /// Folder proyek dicari lewat helper yang sama dengan yang dipakai panel
+        /// Project dan penerbitan ke ForgeHub — Workflow.Project().Path menunjuk
+        /// satu tingkat lebih dangkal daripada tempat berkasnya benar-benar ada.
+        /// </summary>
+        private void SetOrchestratorContext()
+        {
+            try
+            {
+                var project = Workflow != null ? Workflow.Project() as Project : null;
+                if (project == null) return;
+
+                var folder = Templates.ProjectTemplates.ProjectFolderOnDisk(project);
+                if (string.IsNullOrEmpty(folder)) return;
+
+                Custom.Orchestrator.Runtime.WorkflowContext.ProjectFolder = folder;
+                Custom.Orchestrator.Runtime.WorkflowContext.ProjectName = project.name;
+                Custom.Shared.RobotLog.ProcessName = project.name;
+            }
+            catch (Exception ex)
+            {
+                // Konteks yang gagal disetel bukan alasan untuk menolak menjalankan
+                // workflow: yang terpengaruh hanya Invoke Workflow, dan ia akan
+                // melapor sendiri dengan pesan yang jelas.
+                Log.Warning("Gagal menyetel konteks Orchestrator: " + ex.Message);
+            }
+        }
+
         private void ShowVariables(IDictionary<string, WorkflowInstanceValueType> Variables)
         {
             GenericTools.RunUI(() =>

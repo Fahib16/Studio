@@ -1,0 +1,199 @@
+<UserControl x:Class="OpenRPA.Views.JakForgeOutputView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource JF.Surface}">
+
+    <!--
+        Panel Output JakForge.
+
+        Bedanya dengan panel lama: menampung SEMUA level (Info, Warn, Error,
+        Trace), punya penghitung yang sekaligus menjadi saringan, dan punya
+        kotak cari. Panel lama hanya menampilkan baris berkategori "Output"
+        sebagai satu blok teks tanpa penanda level.
+    -->
+
+    <UserControl.Resources>
+        <Style x:Key="LevelToggle" TargetType="ToggleButton">
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="bd" CornerRadius="7" Padding="9,4"
+                                Background="{DynamicResource JF.Panel}"
+                                BorderBrush="{DynamicResource JF.Border}" BorderThickness="1">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.45" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource JF.Tan}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ToolButton" TargetType="Button">
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+            <Setter Property="FontFamily" Value="{DynamicResource JF.FontBody}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="7" Padding="9,4" Background="Transparent"
+                                BorderBrush="{DynamicResource JF.Border}" BorderThickness="1">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <!-- Bilah alat: penghitung yang sekaligus saringan -->
+        <Border Grid.Row="0" Background="{DynamicResource JF.Panel}"
+                BorderBrush="{DynamicResource JF.Border}" BorderThickness="0,0,0,1" Padding="10,7">
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource ToolButton}" Click="Clear_Click" ToolTip="Kosongkan panel">
+                    <TextBlock Text="Bersihkan" />
+                </Button>
+                <Button Style="{StaticResource ToolButton}" Click="Copy_Click" ToolTip="Salin baris yang terlihat">
+                    <TextBlock Text="Salin" />
+                </Button>
+
+                <Border Width="1" Background="{DynamicResource JF.Border}" Margin="6,2" />
+
+                <ToggleButton x:Name="ShowInfo" Style="{StaticResource LevelToggle}" IsChecked="True"
+                              Click="Filter_Changed" ToolTip="Tampilkan atau sembunyikan pesan Info">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="9" Height="9" Fill="{DynamicResource JF.Brown500}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="InfoLabel" Text="Info 0" Margin="7,0,0,0" />
+                    </StackPanel>
+                </ToggleButton>
+
+                <ToggleButton x:Name="ShowWarn" Style="{StaticResource LevelToggle}" IsChecked="True"
+                              Click="Filter_Changed" ToolTip="Tampilkan atau sembunyikan peringatan">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="9" Height="9" Fill="#D08A21" VerticalAlignment="Center" />
+                        <TextBlock x:Name="WarnLabel" Text="Warn 0" Margin="7,0,0,0" />
+                    </StackPanel>
+                </ToggleButton>
+
+                <ToggleButton x:Name="ShowError" Style="{StaticResource LevelToggle}" IsChecked="True"
+                              Click="Filter_Changed" ToolTip="Tampilkan atau sembunyikan galat">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="9" Height="9" Fill="{DynamicResource JF.Danger}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ErrorLabel" Text="Error 0" Margin="7,0,0,0" />
+                    </StackPanel>
+                </ToggleButton>
+
+                <ToggleButton x:Name="ShowTrace" Style="{StaticResource LevelToggle}" IsChecked="False"
+                              Click="Filter_Changed" ToolTip="Pesan rinci; dimatikan secara bawaan karena sangat banyak">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="9" Height="9" Fill="{DynamicResource JF.TextMuted}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="TraceLabel" Text="Trace 0" Margin="7,0,0,0" />
+                    </StackPanel>
+                </ToggleButton>
+            </StackPanel>
+        </Border>
+
+        <!-- Kotak cari -->
+        <Border Grid.Row="1" Background="{DynamicResource JF.Surface}"
+                BorderBrush="{DynamicResource JF.Border}" BorderThickness="0,0,0,1" Padding="10,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Path Grid.Column="0" Data="M10.5,4 A6.5,6.5 0 1,0 10.51,4 Z M15.2,15.2 L20,20"
+                      Stroke="{DynamicResource JF.TextMuted}" StrokeThickness="1.5"
+                      Width="15" Height="15" Stretch="Uniform" VerticalAlignment="Center" />
+                <TextBox x:Name="SearchBox" Grid.Column="1" Margin="8,0,0,0" BorderThickness="0"
+                         Background="Transparent" FontSize="13"
+                         FontFamily="{DynamicResource JF.FontBody}"
+                         Foreground="{DynamicResource JF.Brown900}"
+                         TextChanged="Filter_Changed" />
+            </Grid>
+        </Border>
+
+        <ListBox x:Name="Rows" Grid.Row="2" BorderThickness="0" Background="Transparent"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 VirtualizingPanel.IsVirtualizing="True">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="10,3" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="bd" Background="Transparent" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Panel}" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Accent}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding TimeText}" FontFamily="Consolas" FontSize="12"
+                                   Foreground="{DynamicResource JF.TextMuted}" VerticalAlignment="Top"
+                                   Margin="0,1,10,0" />
+                        <Border x:Name="tag" CornerRadius="4" Padding="6,1" MinWidth="46"
+                                Margin="0,0,10,0" VerticalAlignment="Top">
+                            <TextBlock Text="{Binding Level}" FontSize="11" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" Foreground="White" />
+                        </Border>
+                        <TextBlock Text="{Binding Message}" FontFamily="{DynamicResource JF.FontBody}"
+                                   FontSize="12.5" Foreground="{DynamicResource JF.Brown900}"
+                                   TextWrapping="Wrap" MaxWidth="1100" />
+                    </StackPanel>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Level}" Value="Info">
+                            <Setter TargetName="tag" Property="Background" Value="{DynamicResource JF.Brown500}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Level}" Value="Warn">
+                            <Setter TargetName="tag" Property="Background" Value="#D08A21" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Level}" Value="Error">
+                            <Setter TargetName="tag" Property="Background" Value="{DynamicResource JF.Danger}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Level}" Value="Trace">
+                            <Setter TargetName="tag" Property="Background" Value="{DynamicResource JF.TextMuted}" />
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</UserControl>

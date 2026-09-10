@@ -1,0 +1,54 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Palet TERANG Studio. Warnanya dipisahkan dari gayanya supaya bisa
+        ditukar dengan palet gelap tanpa menyentuh satu pun gaya.
+
+        Kuncinya harus SAMA PERSIS dengan palet gelap: kunci yang cuma ada di
+        satu palet akan hilang begitu paletnya ditukar, dan yang terlihat orang
+        bukan warna yang salah melainkan kotak kosong.
+    -->
+
+    <Color x:Key="JF.Color.Cream">#FAF7EE</Color>
+    <Color x:Key="JF.Color.Surface">#FFFDF8</Color>
+    <Color x:Key="JF.Color.Sidebar">#EFE8DA</Color>
+    <Color x:Key="JF.Color.Panel">#F5F0E6</Color>
+    <Color x:Key="JF.Color.Border">#E2D8C6</Color>
+    <Color x:Key="JF.Color.BorderSoft">#EDE5D6</Color>
+    <Color x:Key="JF.Color.Brown900">#3E3226</Color>
+    <Color x:Key="JF.Color.Brown700">#4A3927</Color>
+    <Color x:Key="JF.Color.Brown500">#8D6C43</Color>
+    <Color x:Key="JF.Color.Tan">#C9A87C</Color>
+    <Color x:Key="JF.Color.Accent">#FFEBD3</Color>
+    <Color x:Key="JF.Color.TextMuted">#7A6A58</Color>
+    <Color x:Key="JF.Color.TrackFill">#A07E59</Color>
+    <Color x:Key="JF.Color.Track">#E7DBCB</Color>
+    <Color x:Key="JF.Color.TitleBar">#433326</Color>
+    <Color x:Key="JF.Color.Danger">#B4472E</Color>
+    <Color x:Key="JF.Color.Ok">#4C8A5C</Color>
+
+    <!-- Kuasnya membawa warnanya LANGSUNG, bukan lewat DynamicResource ke
+         Color di atas. Warnanya sama, tapi kamus yang tidak bergantung pada
+         apa pun bisa diperiksa berdiri sendiri, dan yang bisa diperiksa
+         itulah yang bisa dijamin benar. Entri Color tetap ada karena
+         GradientStop menuntut Color, bukan Brush. -->
+    <SolidColorBrush x:Key="JF.Cream" Color="#FAF7EE" />
+    <SolidColorBrush x:Key="JF.Surface" Color="#FFFDF8" />
+    <SolidColorBrush x:Key="JF.Sidebar" Color="#EFE8DA" />
+    <SolidColorBrush x:Key="JF.Panel" Color="#F5F0E6" />
+    <SolidColorBrush x:Key="JF.Border" Color="#E2D8C6" />
+    <SolidColorBrush x:Key="JF.BorderSoft" Color="#EDE5D6" />
+    <SolidColorBrush x:Key="JF.Brown900" Color="#3E3226" />
+    <SolidColorBrush x:Key="JF.Brown700" Color="#4A3927" />
+    <SolidColorBrush x:Key="JF.Brown500" Color="#8D6C43" />
+    <SolidColorBrush x:Key="JF.Tan" Color="#C9A87C" />
+    <SolidColorBrush x:Key="JF.Accent" Color="#FFEBD3" />
+    <SolidColorBrush x:Key="JF.TextMuted" Color="#7A6A58" />
+    <SolidColorBrush x:Key="JF.TrackFill" Color="#A07E59" />
+    <SolidColorBrush x:Key="JF.Track" Color="#E7DBCB" />
+    <SolidColorBrush x:Key="JF.TitleBar" Color="#433326" />
+    <SolidColorBrush x:Key="JF.Danger" Color="#B4472E" />
+    <SolidColorBrush x:Key="JF.Ok" Color="#4C8A5C" />
+
+</ResourceDictionary>

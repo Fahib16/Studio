@@ -130,55 +130,23 @@ namespace OpenRPA
             return SecureData;
         }
         private static Config _local = null;
+        /// <summary>
+        /// Letak settings.json. SATU jawaban, tanpa pencarian.
+        ///
+        /// Versi sebelumnya menjelajahi empat tempat (AppData\OpenRPA,
+        /// Documents\OpenRPA, folder kerja, folder induk) dan mengembalikan
+        /// yang pertama ditemukan. Itu punya dua akibat buruk. Yang pertama:
+        /// berkas yang dibaca bisa berbeda dari yang ditulis, jadi setelan
+        /// tampak "tidak tersimpan" padahal tersimpan di tempat lain. Yang
+        /// kedua, dan lebih halus: penyimpanan project menurunkan letaknya
+        /// dari letak berkas ini, sehingga project ikut berpindah mengikuti
+        /// berkas setelan yang kebetulan ditemukan lebih dulu.
+        ///
+        /// Sekarang jawabannya satu dan selalu sama.
+        /// </summary>
         public static string SettingsFile
         {
-            get
-            {
-                string filename = "settings.json";
-                var fi = new System.IO.FileInfo(filename);
-                var _fileName = System.IO.Path.GetFileName(filename);
-                var di = fi.Directory;
-                var MyDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                var MyDocumentsOpenRPA = System.IO.Path.Combine(MyDocuments, "OpenRPA");
-                var AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                var AppDataOpenRPA = System.IO.Path.Combine(AppData, "OpenRPA");
-
-                // Mode portabel: setelan ada di folder data di sebelah program,
-                // dan tidak ada tempat lain yang dilirik.
-                //
-                // Diperiksa PALING DULU dan mengembalikan langsung, supaya
-                // pembacaan dan penulisan menunjuk berkas yang sama. Sebelum
-                // ini keduanya bisa berbeda: SettingsFile mencari di beberapa
-                // tempat sementara Save() selalu menulis ke ProjectsDirectory —
-                // jadi setelan bisa dibaca dari satu berkas lalu disimpan ke
-                // berkas lain, dan yang terlihat adalah perubahan yang "tidak
-                // tersimpan" padahal tersimpan, di tempat yang tidak dibaca.
-                if (Extensions.IsPortable)
-                {
-                    return System.IO.Path.Combine(Extensions.ProjectsDirectory, "settings.json");
-                }
-
-                if (System.IO.File.Exists(System.IO.Path.Combine(AppDataOpenRPA, "settings.json")))
-                {
-                    filename = System.IO.Path.Combine(Extensions.ProjectsDirectory, "settings.json");
-                } else if (System.IO.File.Exists(System.IO.Path.Combine(MyDocumentsOpenRPA, "settings.json")))
-                {
-                    filename = System.IO.Path.Combine(MyDocumentsOpenRPA, "settings.json");
-                }
-                else if (System.IO.File.Exists(filename))
-                {
-                }
-                else if (System.IO.File.Exists(System.IO.Path.Combine(di.Parent.FullName, "settings.json")))
-                {
-                    filename = System.IO.Path.Combine(di.Parent.FullName, "settings.json");
-                }
-                else
-                {
-                    // Will create a new file in ProjectsDirectory
-                    filename = System.IO.Path.Combine(MyDocumentsOpenRPA, "settings.json");
-                }
-                return filename;
-            }
+            get { return System.IO.Path.Combine(Extensions.DataDirectory, "settings.json"); }
         }
         public static Config local
         {
@@ -267,7 +235,11 @@ namespace OpenRPA
         {
             try
             {
-                _local.Save(System.IO.Path.Combine(Extensions.ProjectsDirectory, "settings.json"));
+                // SettingsFile, bukan jalur yang dirakit ulang di sini: dua
+                // tempat yang menghitung jalur yang sama adalah dua tempat yang
+                // harus diperbaiki bersamaan, dan yang terlewat menghasilkan
+                // setelan yang tersimpan ke berkas yang tidak pernah dibaca.
+                _local.Save(SettingsFile);
             }
             catch (Exception ex)
             {

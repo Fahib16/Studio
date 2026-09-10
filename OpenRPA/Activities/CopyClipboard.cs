@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 namespace OpenRPA.Activities
 {
     [Designer(typeof(CopyClipboardDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.copyclipboard.png")]
     [LocalizedToolboxTooltip("activity_copyclipboard_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_copyclipboard", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_copyclipboard_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_copyclipboard.png")]
     public class CopyClipboard : CodeActivity
     {
         [LocalizedDisplayName("activity_sendctrlc", typeof(Resources.strings)), LocalizedDescription("activity_sendctrlc_help", typeof(Resources.strings))]

@@ -61,3 +61,35 @@ konsisten jalan.
 Buka rpachallenge.com (atau halaman apa saja), buka DevTools, ambil selector
 salah satu field input, coba `Studio Set Text` dengan Selector itu + teks
 apa saja, lihat apakah field-nya beneran terisi.
+
+---
+
+## v0.9.0 — apa yang berubah dan kenapa harus reload
+
+`manifest.json` sekarang di versi 0.9.0. **Setelah menarik perubahan ini,
+buka `chrome://extensions/` dan tekan Reload pada extension Studio.** Chrome
+tidak memuat ulang service worker secara otomatis; tanpa reload, operasi baru
+dijawab "Unknown action".
+
+### Operasi baru pada `pageOpsFn`
+
+| Operasi | Fungsi |
+|---|---|
+| `getAttribute` | Membaca atribut atau properti DOM sebuah elemen |
+| `selectItem` | Memilih item `<select>` lalu memicu event `change` |
+| `setCheck` | Mencentang atau melepas checkbox/radio, juga memicu `change` |
+| `rect` | Posisi dan ukuran elemen |
+| `extractTable` | Mengambil `<table>` menjadi baris dan kolom |
+
+### Aksi baru pada dispatcher
+
+`navigate`, `goBack`, `goForward`, `reload`, `screenshot`, dengan pembantu
+`waitForTabComplete` dan `cropExact`.
+
+### `click` kini menerima pilihan tambahan
+
+`button` (0 kiri, 1 tengah, 2 kanan), `modifiers` (`ctrl`, `shift`, `alt`), dan
+`offsetX`/`offsetY` yang **diukur dari sudut kiri-atas elemen** — sengaja
+disamakan dengan cara jalur desktop mengukurnya, supaya satu selector dan satu
+angka offset berlaku di kedua sisi. Klik kanan juga memicu `contextmenu`.
+Kalau tidak ada pilihan tambahan, jalur cepat `el.click()` tetap dipakai.

@@ -32,8 +32,16 @@ namespace Custom.Terminal
     /// untuk itu) ke Terminal Session yang sedang aktif.
     /// </summary>
     [Designer(typeof(Design.TerminalKeyDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.sendterminalkey.png")]
+    [DisplayName("Send Terminal Key")]
+    [Description("Mengirim tombol khusus (Enter, PF1, Clear) ke layar terminal.")]
     public class SendTerminalKey : CodeActivity
     {
+        public SendTerminalKey()
+        {
+            DisplayName = "Send Terminal Key";
+        }
+
         [Category("Input")]
         [RequiredArgument]
         [DisplayName("Session")]
@@ -68,11 +76,31 @@ namespace Custom.Terminal
             if (Key == TerminalKey.PF)
             {
                 var n = PfNumber != null ? PfNumber.Get(context) : 1;
+
+                // Divalidasi di sini, bukan diserahkan ke Open3270. Nama tombol
+                // yang tidak dikenal ditolak jauh di dalam pustaka, dengan pesan
+                // yang tidak menyebut PF Number sama sekali — dan orang yang
+                // menyusun workflow akan mencari kesalahannya di tempat lain.
+                if (n < 1 || n > 24)
+                {
+                    throw new ArgumentOutOfRangeException(
+                        "PfNumber",
+                        "Send Terminal Key: PF Number harus 1 sampai 24, bukan " + n + ".");
+                }
+
                 keyName = "PF" + n;
             }
             else if (Key == TerminalKey.PA)
             {
                 var n = PaNumber != null ? PaNumber.Get(context) : 1;
+
+                if (n < 1 || n > 3)
+                {
+                    throw new ArgumentOutOfRangeException(
+                        "PaNumber",
+                        "Send Terminal Key: PA Number harus 1 sampai 3, bukan " + n + ".");
+                }
+
                 keyName = "PA" + n;
             }
             else

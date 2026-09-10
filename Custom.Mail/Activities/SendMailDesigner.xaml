@@ -1,0 +1,116 @@
+<shared:PathDesignerBase
+    x:Class="Custom.Mail.Design.SendMailDesigner"
+    Template="{DynamicResource JF.CardTemplate}"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sap="clr-namespace:System.Activities.Presentation;assembly=System.Activities.Presentation"
+    xmlns:sapv="clr-namespace:System.Activities.Presentation.View;assembly=System.Activities.Presentation"
+    xmlns:sapc="clr-namespace:System.Activities.Presentation.Converters;assembly=System.Activities.Presentation"
+    xmlns:shared="clr-namespace:Custom.Shared;assembly=Custom.Shared"
+    >
+
+    <sap:ActivityDesigner.Icon>
+        <DrawingBrush Stretch="Uniform">
+            <DrawingBrush.Drawing>
+                <ImageDrawing Rect="0,0,16,16" ImageSource="/Custom.Mail;component/Resources/sendmail.png" />
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+    </sap:ActivityDesigner.Icon>
+
+    <sap:ActivityDesigner.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Custom.Mail;component/Resources/JakForgeCard.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+        <!-- ExpressionTextBox TIDAK BISA di-bind langsung ke .Expression;
+             wajib lewat converter ini (ConverterParameter=In untuk InArgument,
+             Out + UseLocationExpression untuk OutArgument). -->
+        <sapc:ArgumentToExpressionConverter x:Key="ArgToExpr" />
+        </ResourceDictionary>
+    </sap:ActivityDesigner.Resources>
+
+    <Grid MinWidth="165">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="{StaticResource HeaderBrush}"
+                CornerRadius="3,3,0,0" Padding="8,4">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="/Custom.Mail;component/Resources/sendmail.png" Width="14" Height="14"
+                       Margin="0,0,8,0" VerticalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <!-- Judul di-bind ke DisplayName supaya activity bisa dinamai
+                     langsung di canvas tanpa membuka Properties panel. -->
+                <TextBox Text="{Binding Path=ModelItem.DisplayName, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         Foreground="White" FontWeight="Bold" FontSize="12"
+                         Background="Transparent" BorderThickness="0" Padding="0"
+                         CaretBrush="White" MinWidth="105" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" BorderBrush="#FFE2D8C6" BorderThickness="1" CornerRadius="0,0,3,3"
+                Background="#FFFFFDF8" Padding="8,5">
+            <StackPanel>
+                <!-- To, Subject, Body, dan Attachments inline; pengaturan server tetap di Properties panel. -->
+                <TextBlock Margin="0,0,0,2" FontSize="10" Foreground="#FF6B5B4B">
+                    <Run Text="To" FontWeight="SemiBold" />
+                    <Run Text=" *" Foreground="Red" />
+                </TextBlock>
+                <sapv:ExpressionTextBox
+                    Expression="{Binding Path=ModelItem.To,
+                                         Converter={StaticResource ArgToExpr},
+                                         ConverterParameter=In, Mode=TwoWay}"
+                    OwnerActivity="{Binding Path=ModelItem}"
+                    HintText="Alamat tujuan, dipisah koma"
+                    MaxLines="1" MinWidth="150" />
+                <TextBlock Margin="0,8,0,2" FontSize="10" Foreground="#FF6B5B4B">
+                    <Run Text="Subject" FontWeight="SemiBold" />
+                </TextBlock>
+                <sapv:ExpressionTextBox
+                    Expression="{Binding Path=ModelItem.Subject,
+                                         Converter={StaticResource ArgToExpr},
+                                         ConverterParameter=In, Mode=TwoWay}"
+                    OwnerActivity="{Binding Path=ModelItem}"
+                    HintText="Judul email"
+                    MaxLines="1" MinWidth="150" />
+                <TextBlock Margin="0,8,0,2" FontSize="10" Foreground="#FF6B5B4B">
+                    <Run Text="Body" FontWeight="SemiBold" />
+                </TextBlock>
+                <sapv:ExpressionTextBox
+                    Expression="{Binding Path=ModelItem.Body,
+                                         Converter={StaticResource ArgToExpr},
+                                         ConverterParameter=In, Mode=TwoWay}"
+                    OwnerActivity="{Binding Path=ModelItem}"
+                    HintText="Isi email"
+                    MaxLines="1" MinWidth="150" />
+                <TextBlock Margin="0,8,0,2" FontSize="10" Foreground="#FF6B5B4B">
+                    <Run Text="Attachments" FontWeight="SemiBold" />
+                </TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <sapv:ExpressionTextBox Grid.Column="0"
+                        Expression="{Binding Path=ModelItem.Attachments,
+                                             Converter={StaticResource ArgToExpr},
+                                             ConverterParameter=In, Mode=TwoWay}"
+                        OwnerActivity="{Binding Path=ModelItem}"
+                        HintText="String() berisi path lampiran"
+                        MaxLines="1" MinWidth="150" />
+                    <!-- Tombol pemilih berkas/folder, seperti UiPath: isi kotak di
+                         sebelah kiri diisi dengan path yang dipilih, ditulis sebagai
+                         string VB berkutip. Lihat Custom.Shared.PathDesignerBase. -->
+                    <Button Grid.Column="1" Margin="4,0,0,0" Padding="6,1" Click="Browse_Click"
+                            Tag="Attachments|files|Semua berkas (*.*)|*.*"
+                            ToolTip="Pilih dari komputer" VerticalAlignment="Center">
+                        <TextBlock Text="📁" FontSize="11" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</shared:PathDesignerBase>

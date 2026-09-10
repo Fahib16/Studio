@@ -94,64 +94,158 @@ namespace Studio.NativeHost
             }
         }
 
+        /// <summary>
+        /// Jumlah pelayan pipe yang jalan bersamaan.
+        ///
+        /// DULU cuma SATU, dan itu sumber bug "The semaphore timeout period
+        /// has expired" yang muncul saat Indicate. Alurnya begini: perintah
+        /// "indicate" MENAHAN sambungan sampai user mengklik elemen — bisa
+        /// semenit penuh. Selama itu satu-satunya instans pipe terpakai, jadi
+        /// perintah kedua tidak kebagian instans sama sekali. Yang paling
+        /// sering kena justru "cancelIndicate", yang dikirim persis SELAGI
+        /// indicate masih menunggu — jadi pembatalannya tidak pernah sampai,
+        /// indicate lama tetap menggantung, dan perintah berikutnya
+        /// (mis. "listTabs") ikut kehabisan waktu menunggu instans.
+        ///
+        /// Windows mengembalikan ERROR_SEM_TIMEOUT untuk keadaan itu, dan
+        /// .NET menerjemahkannya jadi IOException apa adanya — makanya pesan
+        /// yang sampai ke user berbunyi soal semaphore, sesuatu yang sama
+        /// sekali tidak menjelaskan apa yang terjadi.
+        /// </summary>
+        private const int PipeInstances = 4;
+
+        /// <summary>0 = belum pernah; dipakai supaya kegagalan "semua instans
+        /// terpakai" cukup dicatat SEKALI per proses. Sebelum ini, proses host
+        /// kedua mencatatnya tiap 500 ms tanpa henti — berkas error.log sampai
+        /// 4 MB berisi 4000-an baris yang sama.</summary>
+        private static int _busyLogged;
+
         private static void RunPipeServerLoop()
+        {
+            // Pelayan tambahan di thread sendiri; satu dijalankan di thread ini
+            // supaya Main tidak keburu selesai.
+            for (int i = 1; i < PipeInstances; i++)
+            {
+                var worker = new Thread(PipeWorkerLoop) { IsBackground = true };
+                worker.Start();
+            }
+
+            PipeWorkerLoop();
+        }
+
+        private static void PipeWorkerLoop()
         {
             while (true)
             {
                 try
                 {
-                    using (var pipe = new NamedPipeServerStream(PipeName, PipeDirection.InOut, 1))
+                    using (var pipe = new NamedPipeServerStream(PipeName, PipeDirection.InOut, PipeInstances))
                     {
                         pipe.WaitForConnection();
-
-                        var request = ReadPipeMessage(pipe);
-                        if (request == null) continue;
-
-                        var id = Guid.NewGuid().ToString("N");
-                        request["id"] = id;
-
-                        // Beberapa command (mis. "startPicker") bisa makan
-                        // waktu lama karena nunggu user klik sesuatu di
-                        // browser -- request pipe boleh sertakan "timeoutMs"
-                        // sendiri, kalau tidak ada pakai default 10 detik.
-                        var timeoutMs = request["timeoutMs"]?.Value<int>() ?? (DefaultResponseTimeoutSeconds * 1000);
-
-                        var waitEvent = new ManualResetEventSlim(false);
-                        lock (_pendingLock) { _pendingWaits[id] = waitEvent; }
-
-                        // Teruskan request ke extension lewat native messaging.
-                        WriteNativeMessage(_browserStdout, request);
-
-                        bool got = waitEvent.Wait(TimeSpan.FromMilliseconds(timeoutMs));
-
-                        JObject response;
-                        lock (_pendingLock)
-                        {
-                            _pendingWaits.Remove(id);
-                            if (got && _pendingResponses.TryGetValue(id, out response))
-                            {
-                                _pendingResponses.Remove(id);
-                            }
-                            else
-                            {
-                                response = new JObject
-                                {
-                                    ["id"] = id,
-                                    ["success"] = false,
-                                    ["error"] = "Timeout menunggu balasan dari extension (browser mungkin tidak aktif)."
-                                };
-                            }
-                        }
-
-                        WritePipeMessage(pipe, response);
+                        Interlocked.Exchange(ref _busyLogged, 0);
+                        ServePipeRequest(pipe);
                     }
+                }
+                catch (Exception ex) when (IsPipeOwnedByAnotherProcess(ex))
+                {
+                    // Proses host LAIN sudah memegang pipe ini (browser kedua,
+                    // profil kedua, atau host lama yang belum sempat keluar).
+                    // Proses ini jadi cadangan: diam saja, dan baru mengambil
+                    // alih kalau pemegangnya berhenti. Jedanya sengaja panjang
+                    // supaya tidak jadi loop sibuk.
+                    if (Interlocked.Exchange(ref _busyLogged, 1) == 0)
+                        LogError("PipeWorkerLoop (host lain memegang pipe, proses ini jadi cadangan)", ex);
+                    Thread.Sleep(5000);
                 }
                 catch (Exception ex)
                 {
-                    LogError("RunPipeServerLoop", ex);
+                    LogError("PipeWorkerLoop", ex);
                     Thread.Sleep(500); // hindari busy-loop kalau ada error berulang
                 }
             }
+        }
+
+        /// <summary>
+        /// Dua kegagalan yang artinya sama: pipe ini sudah dipegang proses host
+        /// LAIN, jadi proses ini tidak boleh ikut melayani.
+        ///
+        ///   ERROR_PIPE_BUSY (231)    jatah instansnya sudah habis.
+        ///   ERROR_ACCESS_DENIED (5)  pipe-nya dibuat dengan jumlah instans yang
+        ///                            berbeda — ini yang terjadi kalau host versi
+        ///                            lama (yang cuma punya SATU instans) masih
+        ///                            hidup saat host versi baru mulai. Windows
+        ///                            menuntut semua instans sepakat soal angka
+        ///                            itu.
+        /// </summary>
+        private static bool IsPipeOwnedByAnotherProcess(Exception ex)
+        {
+            if (ex is UnauthorizedAccessException) return true;
+
+            var io = ex as IOException;
+            return io != null
+                && (io.HResult == unchecked((int)0x800700E7)
+                 || io.HResult == unchecked((int)0x80070005));
+        }
+
+        /// <summary>
+        /// Melayani SATU sambungan: baca permintaan, teruskan ke extension,
+        /// tunggu balasan, kirim balik. Isinya sama persis dengan versi lama —
+        /// yang berubah hanya siapa yang memanggilnya, dan sekarang beberapa
+        /// sambungan bisa dilayani berbarengan.
+        /// </summary>
+        private static void ServePipeRequest(NamedPipeServerStream pipe)
+        {
+            var request = ReadPipeMessage(pipe);
+            if (request == null) return;
+
+            var id = Guid.NewGuid().ToString("N");
+            request["id"] = id;
+
+            // "hostTimeoutMs" adalah anggaran KITA -- berapa lama menunggu
+            // balasan extension. "timeoutMs" adalah anggaran operasi DI DALAM
+            // extension (menunggu elemen muncul, menunggu halaman dimuat), dan
+            // biasanya lebih kecil.
+            //
+            // Dulu satu kolom dipakai untuk kedua arti itu. Selama extension
+            // selalu menjawab seketika, itu tidak kelihatan; begitu extension
+            // benar-benar menunggu elemen, kita dan extension kedaluwarsa pada
+            // detik yang sama dan yang terbaca user adalah "browser mungkin
+            // tidak aktif" -- bukan sebab sebenarnya.
+            //
+            // Kolom lama tetap dibaca sebagai cadangan supaya klien versi lama
+            // masih dilayani seperti biasa.
+            var timeoutMs = request["hostTimeoutMs"]?.Value<int>()
+                         ?? request["timeoutMs"]?.Value<int>()
+                         ?? (DefaultResponseTimeoutSeconds * 1000);
+
+            var waitEvent = new ManualResetEventSlim(false);
+            lock (_pendingLock) { _pendingWaits[id] = waitEvent; }
+
+            // Teruskan request ke extension lewat native messaging.
+            WriteNativeMessage(_browserStdout, request);
+
+            bool got = waitEvent.Wait(TimeSpan.FromMilliseconds(timeoutMs));
+
+            JObject response;
+            lock (_pendingLock)
+            {
+                _pendingWaits.Remove(id);
+                if (got && _pendingResponses.TryGetValue(id, out response))
+                {
+                    _pendingResponses.Remove(id);
+                }
+                else
+                {
+                    response = new JObject
+                    {
+                        ["id"] = id,
+                        ["success"] = false,
+                        ["error"] = "Timeout menunggu balasan dari extension (browser mungkin tidak aktif)."
+                    };
+                }
+            }
+
+            WritePipeMessage(pipe, response);
         }
 
         // ===================== Protokol Native Messaging (Batch 1, tidak berubah) =====================

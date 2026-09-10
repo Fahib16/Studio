@@ -18,8 +18,16 @@ namespace Custom.StudioBridge
     /// sendiri lewat TabId opsional (default tab aktif).
     /// </summary>
     [Designer(typeof(Design.StudioOpenTabDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.opentab.png")]
+    [DisplayName("Open Tab")]
+    [Description("Membuka tab baru di Chrome yang sudah aktif.")]
     public sealed class StudioOpenTab : NativeActivity
     {
+        public StudioOpenTab()
+        {
+            DisplayName = "Open Tab";
+        }
+
         [Category("Input")]
         [RequiredArgument]
         [DisplayName("Url")]
@@ -32,6 +40,7 @@ namespace Custom.StudioBridge
 
         [Category("Common")]
         [DisplayName("Continue On Error")]
+        [System.ComponentModel.Editor(typeof(Custom.Shared.ContinueOnErrorEditor), typeof(System.Activities.Presentation.PropertyEditing.PropertyValueEditor))]
         public InArgument<bool> ContinueOnError { get; set; }
 
         [Category("Output")]

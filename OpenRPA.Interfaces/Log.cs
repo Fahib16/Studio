@@ -65,7 +65,7 @@ namespace OpenRPA.Interfaces
         }
         public static void ResetLogPath(string folder)
         {
-            Extensions.ProjectsDirectory = folder;
+            Extensions.DataDirectory = folder;
             Config.local.log_to_file = true;
             nlog = null;
         }
@@ -75,7 +75,7 @@ namespace OpenRPA.Interfaces
             if (nlog == null)
             {
                 var config = new NLog.Config.LoggingConfiguration();
-                var logfile = new NLog.Targets.FileTarget("logfile") { FileName = System.IO.Path.Combine(Extensions.ProjectsDirectory, "logfile.txt") };
+                var logfile = new NLog.Targets.FileTarget("logfile") { FileName = System.IO.Path.Combine(Extensions.DataDirectory, "logfile.txt") };
                 logfile.Layout = "${time}|${level:uppercase=true}|${message}";
                 // var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
                 // config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);

@@ -16,10 +16,10 @@ using System.Runtime.InteropServices;
 namespace OpenRPA.Windows
 {
     [System.ComponentModel.Designer(typeof(GetWindowsDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(GetWindows), "Resources.toolbox.getwindows.png")]
     [System.Windows.Markup.ContentProperty("Body")]
     [LocalizedToolboxTooltip("activity_getwindows_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_getwindows", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_getwindows.png")]
     public class GetWindows : BreakableLoop, System.Activities.Presentation.IActivityTemplateFactory
     {
         public InArgument<bool> IncludeHidden { get; set; }

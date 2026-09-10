@@ -374,39 +374,199 @@ namespace OpenRPA.Interfaces
             }
         }
 
+        /// <summary>Nama folder merek, dipakai di Documents dan LocalAppData.</summary>
+        public const string NamaMerek = "JakForge";
+
+        private static string _DataDirectory = null;
+
+        /// <summary>
+        /// Tempat SEGALA yang bukan pekerjaan pengguna: settings.json, basis
+        /// data offline, tata letak jendela, plugin, tessdata, catatan galat.
+        ///
+        /// Dipisah dari ProjectsDirectory dengan sengaja. Sebelumnya keduanya
+        /// satu folder di Documents, dan akibatnya Documents dipenuhi berkas
+        /// yang tidak pernah dibuka siapa pun — sementara project, satu-satunya
+        /// isi yang benar-benar milik pengguna, tenggelam di antaranya.
+        ///
+        /// Di %LOCALAPPDATA%, bukan %APPDATA%: isinya khusus mesin ini
+        /// (basis data, tata letak, cache) dan tidak ada gunanya ikut
+        /// roaming profile ke komputer lain.
+        /// </summary>
+        public static string DataDirectory
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_DataDirectory)) return _DataDirectory;
+
+                // Mode portabel diperiksa PALING DULU. Kalau penandanya ada,
+                // Documents dan LocalAppData tidak dilirik sama sekali — bukan
+                // dijadikan cadangan, karena "kadang di sini kadang di sana"
+                // adalah perilaku yang tidak bisa dijelaskan kepada siapa pun.
+                if (IsPortable)
+                {
+                    _DataDirectory = System.IO.Path.Combine(ProgramDirectory, "jakforge-data");
+                }
+                else
+                {
+                    _DataDirectory = System.IO.Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        NamaMerek, "Studio");
+                }
+
+                try
+                {
+                    if (!System.IO.Directory.Exists(_DataDirectory))
+                        System.IO.Directory.CreateDirectory(_DataDirectory);
+                }
+                catch (Exception)
+                {
+                    // Folder yang gagal dibuat tetap dikembalikan apa adanya;
+                    // pemanggil yang menulis ke sana akan gagal dengan pesan
+                    // yang menyebut jalurnya, dan itu jauh lebih berguna
+                    // daripada jalur kosong yang menyesatkan.
+                }
+
+                return _DataDirectory;
+            }
+            set { _DataDirectory = value; }
+        }
+
+        private static bool _sudahPindahDariOpenRPA = false;
+
+        /// <summary>
+        /// Memindahkan data dari tata letak lama (Documents\OpenRPA) ke tata
+        /// letak baru, sekali saja, dan dengan MENYALIN — bukan memindahkan.
+        ///
+        /// Kenapa menyalin: kalau ada satu saja yang meleset dalam pemetaan
+        /// ini, yang lama masih utuh dan pekerjaan orang tidak hilang. Ruang
+        /// disk jauh lebih murah daripada project yang tidak bisa dikembalikan.
+        ///
+        /// Kenapa hanya sekali: penyalinan hanya terjadi kalau tujuannya masih
+        /// kosong. Sesudah orang bekerja di tata letak baru, folder lama tidak
+        /// pernah dilirik lagi — kalau tidak, perubahan hari ini akan tertimpa
+        /// keadaan bulan lalu setiap kali program dijalankan.
+        /// </summary>
+        public static void PindahkanDataLamaKalauPerlu()
+        {
+            if (_sudahPindahDariOpenRPA) return;
+            _sudahPindahDariOpenRPA = true;
+
+            if (IsPortable) return;
+
+            try
+            {
+                var lama = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "OpenRPA");
+
+                if (!System.IO.Directory.Exists(lama)) return;
+
+                // Project: Documents\OpenRPA\<sub>\<Nama> -> Documents\JakForge\<Nama>
+                //
+                // <sub> dulu berisi "offline" atau nama host orchestrator.
+                // Tingkat itu sekarang hilang, jadi isinya dinaikkan satu
+                // tingkat. Folder yang namanya sudah dipakai dilewati, bukan
+                // ditimpa: menggabungkan dua project berbeda yang kebetulan
+                // senama akan merusak keduanya.
+                foreach (var sub in System.IO.Directory.GetDirectories(lama))
+                {
+                    var namaSub = System.IO.Path.GetFileName(sub);
+                    if (namaSub.StartsWith("_")) continue;   // _shared, _orphans
+                    if (string.Equals(namaSub, "extensions", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (string.Equals(namaSub, "images", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (string.Equals(namaSub, "tessdata", StringComparison.OrdinalIgnoreCase)) continue;
+
+                    foreach (var project in System.IO.Directory.GetDirectories(sub))
+                    {
+                        var tujuan = System.IO.Path.Combine(
+                            ProjectsDirectory, System.IO.Path.GetFileName(project));
+
+                        if (System.IO.Directory.Exists(tujuan)) continue;
+                        SalinFolder(project, tujuan);
+                    }
+                }
+
+                // Config: berkas di akar Documents\OpenRPA -> DataDirectory
+                foreach (var berkas in System.IO.Directory.GetFiles(lama))
+                {
+                    var tujuan = System.IO.Path.Combine(
+                        DataDirectory, System.IO.Path.GetFileName(berkas));
+
+                    if (!System.IO.File.Exists(tujuan))
+                        System.IO.File.Copy(berkas, tujuan);
+                }
+
+                foreach (var nama in new[] { "extensions", "images", "tessdata", "_shared", "_orphans" })
+                {
+                    var asal = System.IO.Path.Combine(lama, nama);
+                    var tujuan = System.IO.Path.Combine(DataDirectory, nama);
+
+                    if (System.IO.Directory.Exists(asal) && !System.IO.Directory.Exists(tujuan))
+                        SalinFolder(asal, tujuan);
+                }
+            }
+            catch (Exception)
+            {
+                // Migrasi yang gagal TIDAK boleh menghentikan program. Yang
+                // hilang cuma kenyamanan: datanya masih ada di tempat lama dan
+                // bisa disalin tangan. Program yang menolak jalan karena
+                // penyalinan gagal jauh lebih buruk daripada Studio kosong.
+            }
+        }
+
+        private static void SalinFolder(string asal, string tujuan)
+        {
+            System.IO.Directory.CreateDirectory(tujuan);
+
+            foreach (var berkas in System.IO.Directory.GetFiles(asal))
+            {
+                System.IO.File.Copy(
+                    berkas, System.IO.Path.Combine(tujuan, System.IO.Path.GetFileName(berkas)), false);
+            }
+
+            foreach (var anak in System.IO.Directory.GetDirectories(asal))
+            {
+                SalinFolder(anak, System.IO.Path.Combine(tujuan, System.IO.Path.GetFileName(anak)));
+            }
+        }
+
         private static string _ProjectsDirectory = null;
+
+        /// <summary>
+        /// Tempat project pengguna, dan HANYA project.
+        ///
+        /// Bentuknya Documents\JakForge\&lt;Nama Project&gt; — satu folder per
+        /// project, langsung terlihat, bisa disalin dan dibagikan apa adanya
+        /// tanpa perlu tahu apa pun tentang Studio.
+        /// </summary>
         public static string ProjectsDirectory
         {
             get
             {
                 if (!string.IsNullOrEmpty(_ProjectsDirectory)) return _ProjectsDirectory;
 
-                // Mode portabel diperiksa PALING DULU. Kalau penandanya ada,
-                // Documents tidak dilirik sama sekali — bukan dijadikan
-                // cadangan, karena "kadang di sini kadang di sana" adalah
-                // perilaku yang tidak bisa dijelaskan kepada siapa pun.
                 if (IsPortable)
                 {
-                    _ProjectsDirectory = System.IO.Path.Combine(ProgramDirectory, "jakforge-data");
+                    // Dalam mode portabel semuanya tetap satu folder yang bisa
+                    // disalin bulat-bulat, tapi project tetap dipisah supaya
+                    // tata letaknya sama seperti mode biasa.
+                    _ProjectsDirectory = System.IO.Path.Combine(DataDirectory, "Projects");
+                }
+                else
+                {
+                    _ProjectsDirectory = System.IO.Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                        NamaMerek);
+                }
 
+                try
+                {
                     if (!System.IO.Directory.Exists(_ProjectsDirectory))
                         System.IO.Directory.CreateDirectory(_ProjectsDirectory);
-
-                    return _ProjectsDirectory;
+                }
+                catch (Exception)
+                {
                 }
 
-                var MyDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                var MyDocumentsOpenRPA = System.IO.Path.Combine(MyDocuments, "OpenRPA");
-                var AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                var AppDataOpenRPA = System.IO.Path.Combine(AppData, "OpenRPA");
-                _ProjectsDirectory = MyDocumentsOpenRPA;
-                if (System.IO.File.Exists(System.IO.Path.Combine(AppDataOpenRPA, "settings.json")))
-                {
-                    _ProjectsDirectory = AppDataOpenRPA;
-                } else if (System.IO.File.Exists(System.IO.Path.Combine(MyDocumentsOpenRPA, "settings.json")))
-                {
-                    _ProjectsDirectory = MyDocumentsOpenRPA;
-                }
                 return _ProjectsDirectory;
             }
             set
@@ -425,18 +585,12 @@ namespace OpenRPA.Interfaces
                 return path;
             }
         }
-        public static string DataDirectory
-        {
-            get
-            {
-                //var asm = System.Reflection.Assembly.GetEntryAssembly();
-                //var filepath = asm.CodeBase.Replace("file:///", "");
-                //var path = System.IO.Path.GetDirectoryName(filepath);
-                // if (path.ToLower().Contains("program")) path = UserDirectory;
-                //return path;
-                return UserDirectory;
-            }
-        }
+        // DataDirectory yang DULU ada di sini mengembalikan UserDirectory,
+        // yaitu %APPDATA%\OpenRPA — tempat ketiga yang menyimpan data selain
+        // Documents\OpenRPA dan folder program, tanpa aturan yang bisa
+        // dijelaskan tentang mana menyimpan apa. Definisinya sekarang satu,
+        // di bagian atas berkas ini, bersama ProjectsDirectory.
+
         static public string ResourceAsString(this Type type, string resourceName)
         {
             // string[] names = typeof(Extensions).Assembly.GetManifestResourceNames();

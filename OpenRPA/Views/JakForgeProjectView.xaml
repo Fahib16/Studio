@@ -1,0 +1,107 @@
+<UserControl x:Class="OpenRPA.Views.JakForgeProjectView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource JF.Surface}">
+
+    <!--
+        Panel Project: pohon isi proyek yang sedang dibuka — dependensi,
+        workflow, dan berkas di dalam foldernya.
+
+        Menggantikan tab dokumen "Open project" bawaan OpenRPA, yang memakan
+        satu tab penuh di kanvas padahal isinya cuma daftar. Di sini tempatnya
+        di panel kiri, bersebelahan dengan Aktivitas dan Snippets, seperti di
+        UiPath Studio.
+    -->
+
+    <UserControl.Resources>
+        <Style x:Key="ToolBtn" TargetType="Button">
+            <Setter Property="Margin" Value="0,0,4,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="Transparent" CornerRadius="6" Padding="6,4">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource JF.Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="{DynamicResource JF.Panel}"
+                BorderBrush="{DynamicResource JF.Border}" BorderThickness="0,0,0,1" Padding="8,5">
+            <StackPanel>
+
+                <!--
+                    Nama proyek yang sedang dibuka.
+
+                    Sebelumnya nama ini berdesakan di deretan tombol kepala
+                    jendela, di antara tab DEBUG dan tombol Run/Debug, dan pada
+                    lebar jendela biasa ia terpotong jadi "Tesprojec". Di sini
+                    ruangnya lega dan letaknya tepat di atas isi proyeknya.
+                -->
+                <TextBlock x:Name="ProjectTitle"
+                           FontSize="14" FontWeight="SemiBold"
+                           FontFamily="{DynamicResource JF.FontBody}"
+                           Foreground="{DynamicResource JF.Brown900}"
+                           TextTrimming="CharacterEllipsis" Margin="2,0,0,6" />
+
+                <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource ToolBtn}" Click="Refresh_Click" ToolTip="Muat ulang isi proyek">
+                    <Path Data="M12,4 A8,8 0 1,1 5,9 M12,4 L12,9 M12,4 L7.5,6"
+                          Stroke="{DynamicResource JF.Brown900}" StrokeThickness="1.5"
+                          Width="16" Height="16" Stretch="Uniform" />
+                </Button>
+                <Button Style="{StaticResource ToolBtn}" Click="OpenFolder_Click" ToolTip="Buka folder proyek di Explorer">
+                    <Path Data="M3.5,18.5 L3.5,6 L9,6 L11,8.5 L20.5,8.5 L20.5,18.5 Z"
+                          Stroke="{DynamicResource JF.Brown900}" StrokeThickness="1.5"
+                          Width="16" Height="16" Stretch="Uniform" />
+                </Button>
+                <Button Style="{StaticResource ToolBtn}" Click="Packages_Click" ToolTip="Kelola paket (dependensi)">
+                    <Path Data="M12,3.5 L20,7.5 L20,16.5 L12,20.5 L4,16.5 L4,7.5 Z M4,7.5 L12,11.5 L20,7.5 M12,11.5 L12,20.5"
+                          Stroke="{DynamicResource JF.Brown900}" StrokeThickness="1.4"
+                          Width="16" Height="16" Stretch="Uniform" />
+                </Button>
+                <Button Style="{StaticResource ToolBtn}" Click="NewWorkflow_Click" ToolTip="Workflow baru">
+                    <Path Data="M12,5.5 L12,18.5 M5.5,12 L18.5,12"
+                          Stroke="{DynamicResource JF.Brown900}" StrokeThickness="1.6"
+                          Width="16" Height="16" Stretch="Uniform" />
+                </Button>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Padding="8,6" BorderBrush="{DynamicResource JF.Border}" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Path Grid.Column="0" Data="M10.5,4 A6.5,6.5 0 1,0 10.51,4 Z M15.2,15.2 L20,20"
+                      Stroke="{DynamicResource JF.TextMuted}" StrokeThickness="1.5"
+                      Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                <TextBox x:Name="SearchBox" Grid.Column="1" Margin="7,0,0,0" BorderThickness="0"
+                         Background="Transparent" FontSize="12.5"
+                         FontFamily="{DynamicResource JF.FontBody}"
+                         Foreground="{DynamicResource JF.Brown900}"
+                         TextChanged="Search_Changed" />
+            </Grid>
+        </Border>
+
+        <TreeView x:Name="Tree" Grid.Row="2" BorderThickness="0" Background="Transparent"
+                  MouseDoubleClick="Tree_MouseDoubleClick" />
+    </Grid>
+</UserControl>

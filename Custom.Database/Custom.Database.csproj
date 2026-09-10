@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{AEF30851-281C-4D5C-BEA9-9F43DAE38B6B}</ProjectGuid>
+    <OutputType>library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <!-- AssemblyName menentukan NAMA KATEGORI di toolbox OpenRPA
+         (wfToolbox.xaml.cs: new ToolboxCategory(assembly.GetName().Name)),
+         jadi nama ini yang dilihat user.
+
+         RootNamespace SENGAJA beda dari AssemblyName: namespace "Custom.System"
+         akan membuat setiap nama berkualifikasi "System.xxx" yang ditulis DI DALAM
+         namespace itu dicari lebih dulu sebagai "Custom.System.xxx" dan gagal
+         compile. Namespace tanpa titik ("CustomSystem") menghindari itu tanpa
+         mengorbankan nama kategori. Pola RootNamespace != AssemblyName ini sudah
+         dipakai juga oleh CustomBrowser (assembly Custom.Browser). -->
+    <RootNamespace>CustomDatabase</RootNamespace>
+    <AssemblyName>Custom.Database</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <!-- WPF project type guid WAJIB ada; tanpa ini XAML ActivityDesigner tidak
+         ikut dikompilasi dan tag sap:ActivityDesigner dianggap tidak dikenal. -->
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.Activities.Presentation" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Activities\DatabaseHandle.cs" />
+    <Compile Include="Activities\DatabaseScope.cs" />
+    <Compile Include="Activities\DatabaseScopeDesigner.xaml.cs">
+      <DependentUpon>DatabaseScopeDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\QueryActivities.cs" />
+    <Compile Include="Activities\ExecuteQueryDesigner.xaml.cs">
+      <DependentUpon>ExecuteQueryDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ExecuteNonQueryDesigner.xaml.cs">
+      <DependentUpon>ExecuteNonQueryDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ExecuteScalarDesigner.xaml.cs">
+      <DependentUpon>ExecuteScalarDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\WriteDataTable.cs" />
+    <Compile Include="Activities\WriteDataTableDesigner.xaml.cs">
+      <DependentUpon>WriteDataTableDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\ResFinder.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Activities\DatabaseScopeDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator><SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ExecuteQueryDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator><SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ExecuteNonQueryDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator><SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ExecuteScalarDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator><SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WriteDataTableDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator><SubType>Designer</SubType>
+    </Page>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator><SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\dbscope.png"><LogicalName>CustomDatabase.Resources.dbscope.png</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Resources\dbquery.png"><LogicalName>CustomDatabase.Resources.dbquery.png</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Resources\dbnonquery.png"><LogicalName>CustomDatabase.Resources.dbnonquery.png</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Resources\dbscalar.png"><LogicalName>CustomDatabase.Resources.dbscalar.png</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Resources\dbwrite.png"><LogicalName>CustomDatabase.Resources.dbwrite.png</LogicalName></EmbeddedResource>
+    <Resource Include="Resources\dbscope.png" />
+    <Resource Include="Resources\dbquery.png" />
+    <Resource Include="Resources\dbnonquery.png" />
+    <Resource Include="Resources\dbscalar.png" />
+    <Resource Include="Resources\dbwrite.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

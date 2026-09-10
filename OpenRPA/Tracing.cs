@@ -181,7 +181,7 @@ namespace OpenRPA.Interfaces
             {
                 if (string.IsNullOrEmpty(logpath))
                 {
-                    logpath = Extensions.ProjectsDirectory;
+                    logpath = Extensions.DataDirectory;
                 }
                 try
                 {
@@ -288,6 +288,12 @@ namespace OpenRPA.Interfaces
 
                 if (category == "Tracing") return;
                 DateTime dt = DateTime.Now;
+
+                // Semua level dikirim ke panel Output JakForge, bukan hanya
+                // kategori "Output". Panel itu yang menyaring lewat tombol
+                // level, sehingga Warning dan Error tidak lagi tak terlihat.
+                OpenRPA.Views.JakForgeOutputFeed.Add(dt, category, message);
+
                 if (category == "Output")
                 {
                     _OutputMessages = _OutputMessages.Insert(0, string.Format(@"[{0:HH\:mm\:ss\.fff}][{1}] {2}" + Environment.NewLine, dt, category, message));

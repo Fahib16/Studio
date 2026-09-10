@@ -22,8 +22,16 @@ namespace Custom.Terminal
     /// Open3270 (TheDemo.cs), BUKAN tebakan.
     /// </summary>
     [Designer(typeof(Design.TerminalSessionDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    public sealed class TerminalSession : NativeActivity
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.terminalsession.png")]
+    [DisplayName("Terminal Session")]
+    [Description("Membuka koneksi terminal TN3270 dan menjalankan activity di dalamnya.")]
+    public sealed class TerminalSession : NativeActivity, System.Activities.Presentation.IActivityTemplateFactory
     {
+        public TerminalSession()
+        {
+            DisplayName = "Terminal Session";
+        }
+
         // ===================== Connection =====================
 
         [Category("Connection")]
@@ -79,7 +87,30 @@ namespace Custom.Terminal
 
         [Category("Common")]
         [DisplayName("Continue On Error")]
+        [System.ComponentModel.Editor(typeof(Custom.Shared.ContinueOnErrorEditor), typeof(System.Activities.Presentation.PropertyEditing.PropertyValueEditor))]
         public InArgument<bool> ContinueOnError { get; set; }
+
+
+        /// <summary>
+        /// Dipanggil WF Designer saat activity ini DISERET dari toolbox.
+        ///
+        /// Tanpa ini Body dibiarkan null: kotak "Do" tidak punya argumen
+        /// delegate, jadi tidak ada nama yang bisa dipakai untuk menunjuk
+        /// terminalnya di dalam blok, dan langkah kedua tidak bisa ditambahkan
+        /// tanpa membongkar isinya lebih dulu.
+        /// </summary>
+        public Activity Create(System.Windows.DependencyObject target)
+        {
+            var instance = new TerminalSession();
+
+            instance.Body = new ActivityAction<Open3270.TNEmulator>
+            {
+                Argument = new DelegateInArgument<Open3270.TNEmulator> { Name = "session" },
+                Handler = new System.Activities.Statements.Sequence { DisplayName = "Do" }
+            };
+
+            return instance;
+        }
 
         // ===================== Body: activity anak =====================
 
@@ -130,7 +161,20 @@ namespace Custom.Terminal
 
                 if (!string.IsNullOrEmpty(waitText))
                 {
-                    bool found = emulator.WaitForText(waitRow, waitCol, waitText, (int)timeout.TotalMilliseconds);
+                    // Urutan koordinatnya lewat TerminalCoordinates, sama dengan
+                    // seluruh activity lain di project ini.
+                    //
+                    // Sebelumnya di sini tertulis WaitForText(waitRow, waitCol, ...),
+                    // yang SALAH dua kali: Open3270 memakai x = KOLOM lebih dulu,
+                    // dan keduanya berbasis 0 sementara properti activity berbasis 1.
+                    // Kesalahan yang sama pernah ada di Wait For Terminal Text dan
+                    // sudah diperbaiki di sana; yang di sini tertinggal — akibat
+                    // aturannya hidup di komentar, bukan di satu fungsi yang
+                    // dipanggil semua orang.
+                    bool found = emulator.WaitForText(
+                        TerminalCoordinates.ToX(waitCol), TerminalCoordinates.ToY(waitRow),
+                        waitText, (int)timeout.TotalMilliseconds);
+
                     if (!found)
                     {
                         emulator.Close();

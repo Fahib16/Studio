@@ -12,11 +12,11 @@ using System.Threading.Tasks;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(ForEachOfDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.foreach.png")]
     [System.Windows.Markup.ContentProperty("Body")]
     [System.Activities.Presentation.DefaultTypeArgument(typeof(string))]
     [LocalizedToolboxTooltip("activity_breakableforeachof_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_breakableforeachof", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_foreachof.png")]
     public class ForEachOf<T> : BreakableLoop
     {
         public ForEachOf()

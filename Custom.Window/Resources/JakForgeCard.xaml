@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sap="clr-namespace:System.Activities.Presentation;assembly=System.Activities.Presentation">
+
+    <!--
+        Tampilan kartu activity untuk project ini.
+
+        Warna kepala kartu SAMA dengan warna ikon project ini di toolbox, jadi
+        activity yang sama mudah dikenali baik di daftar maupun di kanvas.
+
+        JF.CardTemplate membuang bingkai bawaan ActivityDesigner (bilah abu-abu
+        berisi nama dan panah lipat). Yang tersisa hanya kartu buatan sendiri,
+        sesuai rancangan. Bingkai pilihan digambar ulang di sini karena bingkai
+        bawaan ikut hilang bersama template lamanya.
+    -->
+
+    <SolidColorBrush x:Key="HeaderBrush" Color="#B08046" />
+    <SolidColorBrush x:Key="JF.CardBody" Color="#FFFDF8" />
+    <SolidColorBrush x:Key="JF.CardBorder" Color="#E2D8C6" />
+    <SolidColorBrush x:Key="JF.CardLabel" Color="#7A6A58" />
+    <SolidColorBrush x:Key="JF.CardSelected" Color="#B08046" />
+
+    <ControlTemplate x:Key="JF.CardTemplate" TargetType="{x:Type sap:ActivityDesigner}">
+        <Border x:Name="Selection" Background="Transparent" BorderBrush="Transparent"
+                BorderThickness="2" CornerRadius="8" Padding="1" SnapsToDevicePixels="True">
+            <ContentPresenter Content="{TemplateBinding Content}" />
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Selection" Property="BorderBrush" Value="{StaticResource JF.CardBorder}" />
+            </Trigger>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter TargetName="Selection" Property="BorderBrush" Value="{StaticResource JF.CardSelected}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+</ResourceDictionary>

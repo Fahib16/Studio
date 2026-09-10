@@ -48,6 +48,41 @@ namespace OpenRPA.Views
             if (splitName.Length > 1) displayName = string.Format("{0}<>", displayName);
             return displayName;
         }
+        /// <summary>
+        /// Seluruh isi toolbox sebagai daftar (kelompok, nama tampilan, tipe).
+        ///
+        /// Dipakai kotak cari activity pada tombol "+" di kanvas. Sengaja
+        /// membaca kategori yang SUDAH terbentuk, bukan memindai assembly
+        /// ulang, supaya isinya tidak mungkin berbeda dengan panel Aktivitas —
+        /// termasuk activity bawaan yang sengaja disembunyikan.
+        /// </summary>
+        public static List<Tuple<string, string, Type>> AllTools()
+        {
+            var result = new List<Tuple<string, string, Type>>();
+            if (Instance == null || Instance.tb == null) return result;
+
+            foreach (var category in Instance.tb.Categories)
+            {
+                foreach (var tool in category.Tools)
+                {
+                    try
+                    {
+                        var type = Type.GetType(tool.ToolName + ", " + tool.AssemblyName);
+                        if (type == null) continue;
+                        if (type.IsAbstract || type.ContainsGenericParameters) continue;
+                        if (type.GetConstructor(Type.EmptyTypes) == null) continue;
+
+                        result.Add(new Tuple<string, string, Type>(category.CategoryName, tool.DisplayName, type));
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Debug("AllTools: " + ex.Message);
+                    }
+                }
+            }
+            return result;
+        }
+
         public void InitializeActivitiesToolbox()
         {
             Log.FunctionIndent("WFToolbox", "InitializeActivitiesToolbox");
@@ -61,6 +96,12 @@ namespace OpenRPA.Views
                 // check if assemblies contain activities
                 int activitiesCount = 0;
                 Type scriptActivitiesType = null;
+
+                // Activity dikumpulkan dulu per KELOMPOK FUNGSI, baru sesudahnya
+                // dijadikan kategori toolbox. Bawaan OpenRPA membuat satu
+                // kategori per assembly, sehingga activity yang berkaitan bisa
+                // terpisah hanya karena berada di project yang berbeda.
+                var grouped = new Dictionary<string, List<Type>>();
                 foreach (System.Reflection.Assembly activityLibrary in appAssemblies.Where(p => !p.IsDynamic))
                 {
                     try
@@ -74,7 +115,6 @@ namespace OpenRPA.Views
                         };
                         // , "ParallelForEach", "ParallelForEachWithBodyFactory", "ForEachWithBodyFactory"
 
-                        var wfToolboxCategory = new ToolboxCategory(activityLibrary.GetName().Name);
                         var actvities = from
                                             activityType in activityLibrary.GetExportedTypes()
                                         where
@@ -116,24 +156,23 @@ namespace OpenRPA.Views
                                             && activityType.Name != "ExcelActivityOf`1"
                                             && !activityType.FullName.EndsWith("Statements.DoWhile")
                                             && !activityType.FullName.EndsWith("Statements.While")
+                                            && !JakForgeToolbox.Hidden(activityType)
                                         orderby
                                             activityType.Name
                                         select
-                                            new ToolboxItemWrapper(activityType, getDisplayName(activityType));
+                                            activityType;
 
-
-                        // , activityType.Name.Replace("`1", "")
-                        actvities.ToList().ForEach(wfToolboxCategory.Add);
-
-                        if (wfToolboxCategory.Tools.Count > 0)
+                        var assemblyName = activityLibrary.GetName().Name;
+                        foreach (var activityType in actvities)
                         {
-                            tb.Categories.Add(wfToolboxCategory);
-                            activitiesCount += wfToolboxCategory.Tools.Count;
-                            //if(wfToolboxCategory.CategoryName == "System.Activities")
-                            //{
-                            //    wfToolboxCategory.Tools.Add(new ToolboxItemWrapper(typeof(System.Activities.Core.Presentation.Factories.ForEachWithBodyFactory<>), "ForEach"));
-                            //    wfToolboxCategory.Tools.Add(new ToolboxItemWrapper(typeof(System.Activities.Core.Presentation.Factories.ParallelForEachWithBodyFactory<>), "ParallelForEach"));
-                            //}
+                            var category = JakForgeToolbox.CategoryOf(activityType, assemblyName);
+                            List<Type> bucket;
+                            if (!grouped.TryGetValue(category, out bucket))
+                            {
+                                bucket = new List<Type>();
+                                grouped[category] = bucket;
+                            }
+                            bucket.Add(activityType);
                         }
 
                         if (scriptActivitiesType == null && activityLibrary.GetName().Name == "OpenRPA.Script")
@@ -152,6 +191,30 @@ namespace OpenRPA.Views
                     {
                         Log.Error(ex.ToString());
                     }
+                }
+
+                // Kelompok dijadikan kategori toolbox, urutannya ditentukan
+                // JakForgeToolbox: kelompok buatan sendiri lebih dulu, sisanya
+                // urut abjad.
+                foreach (var name in JakForgeToolbox.Sort(grouped.Keys))
+                {
+                    var category = new ToolboxCategory(name);
+                    foreach (var activityType in grouped[name].OrderBy(t => getDisplayName(t)))
+                    {
+                        // CATATAN PENTING: JANGAN memakai konstruktor
+                        // ToolboxItemWrapper yang menerima nama bitmap.
+                        // Mengoper pack URI ke sana membuat proses mati dengan
+                        // StackOverflowException saat memuat toolbox (sudah
+                        // terbukti: dengan bitmap -> crash, tanpa bitmap ->
+                        // normal). Ikon bertema untuk activity milik .NET
+                        // dipasang lewat template item di wfToolbox.xaml,
+                        // yang seluruhnya di bawah kendali kita.
+                        category.Add(new ToolboxItemWrapper(activityType, getDisplayName(activityType)));
+                    }
+
+                    if (category.Tools.Count == 0) continue;
+                    tb.Categories.Add(category);
+                    activitiesCount += category.Tools.Count;
                 }
 
                 if(scriptActivitiesType != null)

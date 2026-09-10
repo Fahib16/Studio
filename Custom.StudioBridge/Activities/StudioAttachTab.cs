@@ -22,8 +22,16 @@ namespace Custom.StudioBridge
     /// baru di extension) -- filter dilakukan di sisi C# ini.
     /// </summary>
     [Designer(typeof(Design.StudioAttachTabDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.attachtab.png")]
+    [DisplayName("Attach Tab")]
+    [Description("Memilih tab Chrome yang sudah terbuka untuk dipakai activity berikutnya.")]
     public class StudioAttachTab : CodeActivity
     {
+        public StudioAttachTab()
+        {
+            DisplayName = "Attach Tab";
+        }
+
         [Category("Input")]
         [DisplayName("Url")]
         [Description("Pattern URL tab yang mau di-attach. Isi salah satu (Url atau Title), boleh dua-duanya.")]
@@ -40,6 +48,7 @@ namespace Custom.StudioBridge
 
         [Category("Common")]
         [DisplayName("Continue On Error")]
+        [System.ComponentModel.Editor(typeof(Custom.Shared.ContinueOnErrorEditor), typeof(System.Activities.Presentation.PropertyEditing.PropertyValueEditor))]
         public InArgument<bool> ContinueOnError { get; set; }
 
         [Category("Output")]

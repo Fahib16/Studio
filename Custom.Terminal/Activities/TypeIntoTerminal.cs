@@ -13,8 +13,16 @@ namespace Custom.Terminal
     /// activity ini yang urus posisinya (opsional, lihat properti di bawah).
     /// </summary>
     [Designer(typeof(Design.TypeIntoTerminalDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.typeintoterminal.png")]
+    [DisplayName("Type Into Terminal")]
+    [Description("Mengetik teks di layar terminal.")]
     public class TypeIntoTerminal : CodeActivity
     {
+        public TypeIntoTerminal()
+        {
+            DisplayName = "Type Into Terminal";
+        }
+
         [Category("Input")]
         [RequiredArgument]
         [DisplayName("Session")]
@@ -27,12 +35,14 @@ namespace Custom.Terminal
 
         [Category("Target")]
         [DisplayName("Row")]
-        [Description("Opsional. Kalau diisi (bersama Column), Send Terminal Key posisi kursor dulu " +
-                      "lewat Refresh + set cursor sebelum mengetik. Kosongkan untuk ketik di posisi kursor saat ini.")]
+        [Description("Opsional, berbasis 1 (baris teratas = 1). Kalau diisi bersama Column, kursor " +
+                     "dipindahkan ke sana dulu sebelum mengetik. Kosongkan (0) untuk mengetik di " +
+                     "posisi kursor saat ini.")]
         public InArgument<int> Row { get; set; }
 
         [Category("Target")]
         [DisplayName("Column")]
+        [Description("Opsional, berbasis 1 (kolom paling kiri = 1).")]
         public InArgument<int> Column { get; set; }
 
         [Category("Common")]
@@ -46,22 +56,20 @@ namespace Custom.Terminal
 
             var text = Text.Get(context) ?? string.Empty;
 
-            // CATATAN: Open3270 TNEmulator tidak punya method "SetCursor(row,col)"
-            // yang terkonfirmasi dari source yang sudah saya lihat (TheDemo.cs
-            // tidak mendemokan ini). Kalau Row/Column diisi, cara paling aman
-            // yang saya tahu pasti ada: kirim key Home dulu (kembali ke posisi
-            // field pertama/awal), TAPI ini TIDAK sama dengan pindah ke row/col
-            // spesifik. Kalau kamu butuh positioning presisi, kasih tahu saya —
-            // saya perlu lihat lebih lanjut apakah TNEmulator/CurrentScreenXML
-            // punya method SetCursor atau setara sebelum saya implementasikan
-            // dengan yakin (daripada nebak lagi).
+            // SEKARANG PRESISI. Catatan lama ("Open3270 tidak punya SetCursor
+            // yang terkonfirmasi, jadi cuma kirim Home") sudah tidak berlaku:
+            // TNEmulator.SetCursor(int x, int y) memang ada, dan urutan
+            // parameternya sudah dipastikan dari source Open3270 di repo ini —
+            // Controller.MoveCursor menghitung alamat sebagai
+            // ((y * columnCount) + x), jadi x = KOLOM dan y = BARIS, keduanya
+            // berbasis 0. Row/Column di activity ini berbasis 1 (0 = tidak
+            // diisi); konversinya di TerminalCoordinates.
             var row = Row != null ? Row.Get(context) : 0;
             var col = Column != null ? Column.Get(context) : 0;
-            if (row > 0 || col > 0)
+
+            if (TerminalCoordinates.HasPosition(row, col))
             {
-                // Placeholder aman: cuma Home dulu. TIDAK presisi ke row/col
-                // tertentu -- lihat catatan di atas.
-                session.SendKeyFromText(true, "Home");
+                session.SetCursor(TerminalCoordinates.ToX(col), TerminalCoordinates.ToY(row));
             }
 
             // Signature dikonfirmasi dari TheDemo.cs: SendText(string)

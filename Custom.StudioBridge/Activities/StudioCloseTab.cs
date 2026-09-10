@@ -9,8 +9,16 @@ namespace Custom.StudioBridge
     /// Activity: Studio Close Tab. Tutup tab tertentu (berdasarkan TabId).
     /// </summary>
     [Designer(typeof(Design.StudioCloseTabDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.closetab.png")]
+    [DisplayName("Close Tab")]
+    [Description("Menutup tab Chrome.")]
     public class StudioCloseTab : CodeActivity
     {
+        public StudioCloseTab()
+        {
+            DisplayName = "Close Tab";
+        }
+
         [Category("Input")]
         [RequiredArgument]
         [DisplayName("TabId")]
@@ -18,6 +26,7 @@ namespace Custom.StudioBridge
 
         [Category("Common")]
         [DisplayName("Continue On Error")]
+        [System.ComponentModel.Editor(typeof(Custom.Shared.ContinueOnErrorEditor), typeof(System.Activities.Presentation.PropertyEditing.PropertyValueEditor))]
         public InArgument<bool> ContinueOnError { get; set; }
 
         protected override void Execute(CodeActivityContext context)

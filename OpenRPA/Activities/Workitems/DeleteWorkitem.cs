@@ -13,10 +13,10 @@ using OpenRPA.Interfaces.entity;
 namespace OpenRPA.WorkItems
 {
     [System.ComponentModel.Designer(typeof(DeleteWorkitemDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.deleteworkitem.png")]
     [LocalizedToolboxTooltip("activity_deleteworkitem_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_deleteworkitem", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_deleteworkitem_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_deleteworkitem.png")]
     public class DeleteWorkitem : AsyncTaskCodeActivity
     {
         [LocalizedDisplayName("activity_deleteworkitem_workitem", typeof(Resources.strings)), LocalizedDescription("activity_deleteworkitem_workitem_help", typeof(Resources.strings))]

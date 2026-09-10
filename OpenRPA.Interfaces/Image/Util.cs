@@ -235,7 +235,7 @@ namespace OpenRPA.Interfaces.Image
         {
             try
             {
-                if (string.IsNullOrEmpty(basepath)) { basepath = Interfaces.Extensions.ProjectsDirectory; }
+                if (string.IsNullOrEmpty(basepath)) { basepath = Interfaces.Extensions.DataDirectory; }
                 var imagepath = System.IO.Path.Combine(basepath, "images");
                 if (!System.IO.Directory.Exists(imagepath)) System.IO.Directory.CreateDirectory(imagepath);
                 var imagefilepath = System.IO.Path.Combine(imagepath, id + ".png");

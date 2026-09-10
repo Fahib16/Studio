@@ -40,6 +40,7 @@
     <Reference Include="System.Activities" />
     <Reference Include="System.Activities.Presentation" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -70,9 +71,22 @@
       <DependentUpon>WaitForTerminalTextDesigner.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class1.cs" />
+    <Compile Include="Activities\TerminalCoordinates.cs" />
+    <Compile Include="Activities\TerminalFieldActivities.cs" />
+    <Compile Include="Activities\GetTerminalFieldDesigner.xaml.cs">
+      <DependentUpon>GetTerminalFieldDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\SetTerminalFieldDesigner.xaml.cs">
+      <DependentUpon>SetTerminalFieldDesigner.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Tombol pemilih berkas/folder pada kartu activity (PathDesignerBase). -->
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj">
       <Project>{5aaa6277-bdc9-4b24-950b-eb7a43ab948a}</Project>
       <Name>OpenRPA.Interfaces</Name>
@@ -88,6 +102,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Activities\GetTerminalFieldDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\SetTerminalFieldDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Activities\TerminalKeyDesigner.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -100,18 +122,47 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Activities\UiPathStyleAttachBrowserDesigner.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Activities\UiPathStyleAttachWindowDesigner.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Activities\WaitForTerminalTextDesigner.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Resources\ResFinder.cs" />
+    <EmbeddedResource Include="Resources\getterminalfield.png">
+      <LogicalName>Custom.Terminal.Resources.getterminalfield.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\getterminaltext.png">
+      <LogicalName>Custom.Terminal.Resources.getterminaltext.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\sendterminalkey.png">
+      <LogicalName>Custom.Terminal.Resources.sendterminalkey.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\setterminalfield.png">
+      <LogicalName>Custom.Terminal.Resources.setterminalfield.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\terminalsession.png">
+      <LogicalName>Custom.Terminal.Resources.terminalsession.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\typeintoterminal.png">
+      <LogicalName>Custom.Terminal.Resources.typeintoterminal.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\waitterminaltext.png">
+      <LogicalName>Custom.Terminal.Resources.waitterminaltext.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Resource Include="Resources\getterminalfield.png" />
+    <Resource Include="Resources\getterminaltext.png" />
+    <Resource Include="Resources\sendterminalkey.png" />
+    <Resource Include="Resources\setterminalfield.png" />
+    <Resource Include="Resources\terminalsession.png" />
+    <Resource Include="Resources\typeintoterminal.png" />
+    <Resource Include="Resources\waitterminaltext.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

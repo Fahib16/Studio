@@ -1,0 +1,131 @@
+<UserControl x:Class="OpenRPA.Views.JakForgeStartView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource JF.Surface}">
+
+    <!--
+        Halaman awal kanvas.
+
+        Menggantikan tab "Open project" yang isinya daftar proyek — daftar itu
+        sekarang ada di panel Project, dan menampilkannya dua kali hanya
+        membuat orang bertanya mana yang benar. Yang tersisa di sini hal yang
+        memang berguna saat belum ada workflow terbuka: satu jalan pintas ke
+        workflow utama, dan daftar pintasan papan tik.
+    -->
+
+    <UserControl.Resources>
+        <Style x:Key="ShortcutKey" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource JF.Panel}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource JF.Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="7,2" />
+            <Setter Property="Margin" Value="3,0,0,0" />
+        </Style>
+        <Style x:Key="ShortcutKeyText" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource JF.Brown900}" />
+        </Style>
+        <Style x:Key="ShortcutLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Foreground" Value="{DynamicResource JF.Brown700}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Margin="24,48,24,48" MaxWidth="620">
+
+            <Image Source="/OpenRPA;component/Resources/JakForge/logo_wordmark.png"
+                   Height="52" Stretch="Uniform" Opacity="0.35"
+                   RenderOptions.BitmapScalingMode="HighQuality"
+                   HorizontalAlignment="Center" />
+
+            <Border Height="1" Background="{DynamicResource JF.Border}" Margin="0,26,0,0" />
+
+            <TextBlock x:Name="OpenMainText" HorizontalAlignment="Center" Margin="0,18,0,18">
+                <Hyperlink Click="OpenMain_Click" Foreground="{DynamicResource JF.Brown700}"
+                           TextDecorations="None">
+                    <Run Text="Buka Workflow Utama" FontSize="15" FontWeight="SemiBold" />
+                </Hyperlink>
+            </TextBlock>
+
+            <Border Height="1" Background="{DynamicResource JF.Border}" Margin="0,0,0,22" />
+
+            <Grid x:Name="ShortcutGrid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource ShortcutLabel}"
+                           Text="Tambah activity" Margin="0,0,18,10" />
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                    <Border Style="{StaticResource ShortcutKey}" Margin="0"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="Ctrl" /></Border>
+                    <TextBlock Text="+" Margin="4,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource JF.TextMuted}" />
+                    <Border Style="{StaticResource ShortcutKey}"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="Shift" /></Border>
+                    <TextBlock Text="+" Margin="4,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource JF.TextMuted}" />
+                    <Border Style="{StaticResource ShortcutKey}"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="T" /></Border>
+                </StackPanel>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource ShortcutLabel}"
+                           Text="Buat variabel dari kotak ekspresi" Margin="0,0,18,10" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                    <Border Style="{StaticResource ShortcutKey}" Margin="0"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="Ctrl" /></Border>
+                    <TextBlock Text="+" Margin="4,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource JF.TextMuted}" />
+                    <Border Style="{StaticResource ShortcutKey}"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="K" /></Border>
+                </StackPanel>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource ShortcutLabel}"
+                           Text="Cari cepat" Margin="0,0,18,10" />
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                    <Border Style="{StaticResource ShortcutKey}" Margin="0"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="Ctrl" /></Border>
+                    <TextBlock Text="+" Margin="4,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource JF.TextMuted}" />
+                    <Border Style="{StaticResource ShortcutKey}"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="F" /></Border>
+                </StackPanel>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource ShortcutLabel}"
+                           Text="Simpan workflow" Margin="0,0,18,10" />
+                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                    <Border Style="{StaticResource ShortcutKey}" Margin="0"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="Ctrl" /></Border>
+                    <TextBlock Text="+" Margin="4,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource JF.TextMuted}" />
+                    <Border Style="{StaticResource ShortcutKey}"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="S" /></Border>
+                </StackPanel>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource ShortcutLabel}"
+                           Text="Jalankan (Run)" Margin="0,0,18,10" />
+                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                    <Border Style="{StaticResource ShortcutKey}" Margin="0"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="F5" /></Border>
+                </StackPanel>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource ShortcutLabel}"
+                           Text="Hentikan" Margin="0,0,18,10" />
+                <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                    <Border Style="{StaticResource ShortcutKey}" Margin="0"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="F12" /></Border>
+                </StackPanel>
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Style="{StaticResource ShortcutLabel}"
+                           Text="Batalkan robot yang sedang jalan" Margin="0,0,18,0" />
+                <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal">
+                    <Border Style="{StaticResource ShortcutKey}" Margin="0"><TextBlock Style="{StaticResource ShortcutKeyText}" Text="Esc" /></Border>
+                </StackPanel>
+            </Grid>
+
+            <TextBlock x:Name="HintText" Margin="0,26,0,0" HorizontalAlignment="Center"
+                       FontSize="12" Foreground="{DynamicResource JF.TextMuted}"
+                       TextWrapping="Wrap" TextAlignment="Center" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

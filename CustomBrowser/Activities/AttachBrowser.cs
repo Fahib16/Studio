@@ -12,28 +12,53 @@ namespace Custom.Browser
     /// Activity kustom: Attach Browser ala UiPath (UiPath.Core.Activities.BrowserScope)
     /// untuk Custom.Browser (OpenRPA).
     ///
-    /// VERSI 2 -- dirombak total setelah user share screenshot BrowserScope
-    /// asli. Ternyata UiPath pakai SELECTOR + tombol Indicate, BUKAN cuma
-    /// text matching Url/Title seperti versi pertama saya. Sekarang activity
-    /// ini pakai pola yang SAMA PERSIS dengan Open_Selector di Click v4 --
-    /// dialog SelectorWindow("NM", ...) yang SAMA, cuma hasilnya disimpan ke
-    /// property "Selector" di sini, lalu saat Execute() kita ekstrak info
-    /// URL tab dari selector itu (lewat NMSelectorItem, PERSIS pola yang
-    /// dipakai GetElement.cs versi NM: "var s = new NMSelectorItem(sel[0]);
-    /// if (!string.IsNullOrEmpty(s.url)) ...").
+    /// VERSI 3 -- lepas dari selector OpenRPA. Versi sebelumnya membuka
+    /// dialog SelectorWindow("NM", ...) milik OpenRPA dan menyimpan selector
+    /// JSON-nya, padahal saat dijalankan yang benar-benar dibaca dari selector
+    /// itu hanyalah URL tab. Sekarang tombol "Indicate browser on screen"
+    /// memakai pemilih tab dari jembatan Studio sendiri
+    /// (Custom.StudioBridge.Design.IndicateHelper.PickTabForAttach) dan yang
+    /// tersimpan langsung URL-nya di properti Url. Properti Selector lama
+    /// masih ada tapi disembunyikan, semata supaya workflow yang sudah
+    /// terlanjur menyimpannya tetap bisa dibuka.
     ///
     /// Properti dan nama disesuaikan sedekat mungkin dengan BrowserScope asli:
-    /// Selector, Browser (input, utk chaining dari scope lain), BrowserType,
+    /// Url, Browser (input, utk chaining dari scope lain), BrowserType,
     /// Timeout, Output UiBrowser. "Private" dan "SearchScope" milik UiPath
     /// SENGAJA TIDAK ditiru -- tidak ada padanan nyata di arsitektur NMHook
     /// OpenRPA, tidak mau bikin properti dekoratif yang tidak ngapa-ngapain.
     /// </summary>
     [Designer(typeof(Design.AttachBrowserDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.attachbrowser.png")]
+    [DisplayName("Attach Browser")]
+    [Description("Menyambung ke jendela browser yang sudah terbuka.")]
     public sealed class AttachBrowser : NativeActivity, System.Activities.Presentation.IActivityTemplateFactory
     {
+        public AttachBrowser()
+        {
+            DisplayName = "Attach Browser";
+        }
+
+        /// <summary>
+        /// Alamat tab yang mau dipakai; cocok kalau URL tab MEMUAT teks ini.
+        ///
+        /// Menggantikan properti Selector lama yang berisi selector JSON
+        /// OpenRPA. Dari selector itu pun sebenarnya hanya URL-nya yang dibaca
+        /// saat dijalankan, jadi tidak ada kemampuan yang hilang — yang hilang
+        /// hanya ketergantungan pada selector bawaan OpenRPA.
+        /// </summary>
         [Category("Input")]
-        [DisplayName("Selector")]
-        [Description("Selector hasil \"Indicate browser on screen\". Diisi otomatis lewat tombol Indicate di designer.")]
+        [DisplayName("Url")]
+        [Description("Cocokkan dengan tab yang URL-nya memuat teks ini. Isi lewat tombol " +
+                     "\"Indicate browser on screen\", atau ketik sendiri.")]
+        public InArgument<string> Url { get; set; }
+
+        /// <summary>
+        /// Properti lama, dipertahankan HANYA supaya workflow yang sudah
+        /// terlanjur menyimpannya tetap bisa dibuka. Tidak lagi dipakai saat
+        /// dijalankan dan disembunyikan dari panel Properties.
+        /// </summary>
+        [Browsable(false)]
         public InArgument<string> Selector { get; set; }
 
         [Category("Input")]
@@ -54,6 +79,7 @@ namespace Custom.Browser
 
         [Category("Common")]
         [DisplayName("Continue On Error")]
+        [System.ComponentModel.Editor(typeof(Custom.Shared.ContinueOnErrorEditor), typeof(System.Activities.Presentation.PropertyEditing.PropertyValueEditor))]
         public InArgument<bool> ContinueOnError { get; set; }
 
         [Category("Output")]
@@ -70,6 +96,7 @@ namespace Custom.Browser
 
         protected override void CacheMetadata(NativeActivityMetadata metadata)
         {
+            metadata.AddArgument(new RuntimeArgument("Url", typeof(string), ArgumentDirection.In));
             metadata.AddArgument(new RuntimeArgument("Selector", typeof(string), ArgumentDirection.In));
             metadata.AddArgument(new RuntimeArgument("Browser", typeof(NativeMessagingMessageTab), ArgumentDirection.In));
             metadata.AddArgument(new RuntimeArgument("Timeout", typeof(TimeSpan), ArgumentDirection.In));
@@ -87,10 +114,10 @@ namespace Custom.Browser
             try
             {
                 var browserFromInput = Browser != null ? Browser.Get(context) : null;
-                var selectorJson = Selector != null ? Selector.Get(context) : null;
+                var wantedUrl = Url != null ? Url.Get(context) : null;
 
-                if (browserFromInput == null && string.IsNullOrEmpty(selectorJson))
-                    throw new ArgumentException("Attach Browser: salah satu dari [Selector] atau [Browser] harus diisi.");
+                if (browserFromInput == null && string.IsNullOrEmpty(wantedUrl))
+                    throw new ArgumentException("Attach Browser: salah satu dari [Url] atau [Browser] harus diisi.");
 
                 var browserType = MapBrowser(BrowserType);
                 var timeout = Timeout != null ? Timeout.Get(context) : TimeSpan.Zero;
@@ -108,16 +135,8 @@ namespace Custom.Browser
                 }
                 else
                 {
-                    // Jalur "Selector" -- ekstrak URL dari selector, cari
-                    // tab yang cocok. Pola PERSIS GetElement.cs versi NM:
-                    // "var s = new NMSelectorItem(sel[0]); if (!string.IsNullOrEmpty(s.url)) ..."
-                    var sel = new NMSelector(selectorJson);
-                    var firstItem = new NMSelectorItem(sel[0]);
-                    var url = firstItem.url;
-
-                    if (string.IsNullOrEmpty(url))
-                        throw new InvalidOperationException(
-                            "Attach Browser: Selector tidak mengandung info URL yang valid.");
+                    // Jalur "Url" -- cari tab yang alamatnya memuat teks ini.
+                    var url = wantedUrl;
 
                     var sw = Stopwatch.StartNew();
                     found = null;
@@ -179,7 +198,11 @@ namespace Custom.Browser
             var da = new DelegateInArgument<NativeMessagingMessageTab> { Name = "browser" };
             fef.Body = new ActivityAction<NativeMessagingMessageTab>
             {
-                Argument = da
+                Argument = da,
+
+                // Sama seperti Open Browser: Do berisi Sequence sejak awal,
+                // supaya langkah kedua bisa langsung ditambahkan.
+                Handler = new System.Activities.Statements.Sequence { DisplayName = "Do" }
             };
             return fef;
         }

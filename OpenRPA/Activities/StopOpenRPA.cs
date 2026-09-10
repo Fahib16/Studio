@@ -13,9 +13,9 @@ using Newtonsoft.Json.Linq;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(StopOpenRPADesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.stopopnerpa.png")]
     [LocalizedToolboxTooltip("activity_stopopenrpa_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_stopopenrpa", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_stopopenrpa.png")]
     public class StopOpenRPA : NativeActivity
     {
         [LocalizedDisplayName("activity_workflow", typeof(Resources.strings)), LocalizedDescription("activity_workflow_help", typeof(Resources.strings))]

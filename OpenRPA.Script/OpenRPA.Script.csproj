@@ -92,6 +92,13 @@
     <EmbeddedResource Include="Resources\toolbox\invokecode.png" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Disamakan dengan OpenRPA (6.0.0) dan dengan pengalihan versi di berkas
+         config, yang memang menunjuk 6.0.0.0. Tanpa penyebutan eksplisit,
+         proyek ini menarik versi lama secara transitif; karena seluruh proyek
+         menyalin ke SATU folder keluaran, proyek yang membangun terakhir
+         menentukan versi yang mendarat. Sebelas rakitan meminta 6.0.0.0,
+         termasuk Roslyn, jadi versi lama yang mendarat adalah ranjau. -->
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
     <PackageReference Include="AvalonEdit" Version="6.1.3.50" />
     <PackageReference Include="Python.Included" Version="3.7.3.13" />
     <PackageReference Include="sharpAHK" Version="1.0.0.5" />

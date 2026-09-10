@@ -279,6 +279,19 @@ portable.txt
 #
 # Yang dibutuhkan agar ID ekstensi tetap sama di semua mesin adalah kunci
 # PUBLIK, dan itu sudah ada di dalam Extension/manifest.json. Kunci privat
-# hanya diperlukan kalau nanti ekstensinya dipaketkan menjadi .crx —
-# simpan di tempat lain, jangan di repositori.
+# hanya diperlukan kalau nanti ekstensinya dipaketkan menjadi .crx.
+#
+# Kuncinya SUDAH DIPINDAH keluar dari repositori, ke
+#   %LOCALAPPDATA%\JakForge\kunci-penandatangan\ekstensi-studio-bridge.pem
+# Alasannya bukan cuma soal git: folder Extension/ itu yang dimuat Chrome
+# lewat "Load unpacked" dan yang disalin orang ke komputer lain, jadi kunci
+# penanda tangan yang menganggur di dalamnya ikut tersalin ke mana-mana.
+#
+# Baris di bawah tetap ada supaya salinan lama tidak ikut ter-commit.
 Extension/kunci-privat.pem
+
+# Paket ekstensi dan muatan pemasang: keduanya HASIL BANGUN, bukan sumber.
+# Keduanya juga besar dan berubah tiap build, jadi tidak ada gunanya di git.
+*.crx
+JakForge.Installer/payload.zip
+JakForgeStudioSetup.exe

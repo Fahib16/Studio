@@ -81,7 +81,7 @@ namespace OpenRPA
         {
             try
             {
-                string extensionsFolder = System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "extensions");
+                string extensionsFolder = System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "extensions");
 
                 (var clashes, var forInstallation) = await DependencyResolver.ResolveAllDependencies(RobotInstance.instance.Projects, NuGetFramework, DefaultSourceRepositoryProvider);
 
@@ -293,7 +293,7 @@ namespace OpenRPA
                     {
                         // per project or joined ?
                         // string TargetFolder = System.IO.Path.Combine(project.Path, "extensions");
-                        string TargetFolder = System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "extensions");
+                        string TargetFolder = System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "extensions");
 
                         PackageReaderBase packageReader;
                         packageReader = new PackageFolderReader(installedPath);
@@ -412,7 +412,7 @@ namespace OpenRPA
                     }
                     // per project or joined ?
                     // string TargetFolder = System.IO.Path.Combine(project.Path, "extensions");
-                    string TargetFolder = System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "extensions");
+                    string TargetFolder = System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "extensions");
                    
                     InstallPackage(TargetFolder, packageToInstall, LoadDlls, skipDepdencies);
                 }

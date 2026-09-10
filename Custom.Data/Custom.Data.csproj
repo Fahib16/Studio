@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D523FCF2-EBCC-4AD9-84CC-C0BF920A399C}</ProjectGuid>
+    <OutputType>library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Custom.Data</RootNamespace>
+    <AssemblyName>Custom.Data</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <!-- WPF project type guid WAJIB ada; tanpa ini XAML ActivityDesigner tidak
+         ikut dikompilasi dan tag sap:ActivityDesigner dianggap tidak dikenal. -->
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Versi Newtonsoft.Json HARUS sama persis dengan yang dipakai
+         Custom.StudioBridge (13.0.4). Project gaya lama tidak menerima paket
+         transitif, dan versi berbeda membuat JObject dianggap dua tipe yang
+         berlainan. -->
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.Activities.Presentation" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Activities\FilterDataTable.cs" />
+    <Compile Include="Activities\FilterDataTableDesigner.xaml.cs">
+      <DependentUpon>FilterDataTableDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\SortDataTable.cs" />
+    <Compile Include="Activities\SortDataTableDesigner.xaml.cs">
+      <DependentUpon>SortDataTableDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\RemoveDuplicateRows.cs" />
+    <Compile Include="Activities\RemoveDuplicateRowsDesigner.xaml.cs">
+      <DependentUpon>RemoveDuplicateRowsDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\MergeDataTable.cs" />
+    <Compile Include="Activities\MergeDataTableDesigner.xaml.cs">
+      <DependentUpon>MergeDataTableDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\JoinDataTable.cs" />
+    <Compile Include="Activities\JoinDataTableDesigner.xaml.cs">
+      <DependentUpon>JoinDataTableDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\AddDataRow.cs" />
+    <Compile Include="Activities\AddDataRowDesigner.xaml.cs">
+      <DependentUpon>AddDataRowDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GetRowItem.cs" />
+    <Compile Include="Activities\GetRowItemDesigner.xaml.cs">
+      <DependentUpon>GetRowItemDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\OutputDataTable.cs" />
+    <Compile Include="Activities\OutputDataTableDesigner.xaml.cs">
+      <DependentUpon>OutputDataTableDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ReadCsv.cs" />
+    <Compile Include="Activities\ReadCsvDesigner.xaml.cs">
+      <DependentUpon>ReadCsvDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\CsvFile.cs" />
+    <Compile Include="Activities\WriteCsv.cs" />
+    <Compile Include="Activities\WriteCsvDesigner.xaml.cs">
+      <DependentUpon>WriteCsvDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\BuildDataTable.cs" />
+    <Compile Include="Activities\BuildDataTableDesigner.xaml.cs">
+      <DependentUpon>BuildDataTableDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ColumnEditorWindow.cs" />
+    <Compile Include="Activities\ExtractDataTable.cs" />
+    <Compile Include="Activities\ExtractDataTableDesigner.xaml.cs">
+      <DependentUpon>ExtractDataTableDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="Activities\README.md" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Activities\ExtractDataTableDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\BuildDataTableDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WriteCsvDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ReadCsvDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\OutputDataTableDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GetRowItemDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\AddDataRowDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\JoinDataTableDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\MergeDataTableDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\RemoveDuplicateRowsDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\SortDataTableDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\FilterDataTableDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Tombol pemilih berkas/folder pada kartu activity (PathDesignerBase). -->
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj">
+      <Project>{5aaa6277-bdc9-4b24-950b-eb7a43ab948a}</Project>
+      <Name>OpenRPA.Interfaces</Name>
+    </ProjectReference>
+    <!-- Hanya dipakai Extract Data Table: jalur "ambil tabel dari halaman"
+         memakai StudioPipeClient dan tombol Indicate yang sudah ada di sana,
+         daripada menyalin protokol named pipe ke project ini. -->
+    <ProjectReference Include="..\Custom.StudioBridge\Custom.StudioBridge.csproj">
+      <Project>{0aed96b8-b1f5-42cc-b54e-adf20e15772a}</Project>
+      <Name>Custom.StudioBridge</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Resources\ResFinder.cs" />
+    <EmbeddedResource Include="Resources\adddatarow.png">
+      <LogicalName>Custom.Data.Resources.adddatarow.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\builddatatable.png">
+      <LogicalName>Custom.Data.Resources.builddatatable.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\extractdatatable.png">
+      <LogicalName>Custom.Data.Resources.extractdatatable.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\filterdatatable.png">
+      <LogicalName>Custom.Data.Resources.filterdatatable.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\getrowitem.png">
+      <LogicalName>Custom.Data.Resources.getrowitem.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\joindatatable.png">
+      <LogicalName>Custom.Data.Resources.joindatatable.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\mergedatatable.png">
+      <LogicalName>Custom.Data.Resources.mergedatatable.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\outputdatatable.png">
+      <LogicalName>Custom.Data.Resources.outputdatatable.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\readcsv.png">
+      <LogicalName>Custom.Data.Resources.readcsv.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\removeduplicaterows.png">
+      <LogicalName>Custom.Data.Resources.removeduplicaterows.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\sortdatatable.png">
+      <LogicalName>Custom.Data.Resources.sortdatatable.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\writecsv.png">
+      <LogicalName>Custom.Data.Resources.writecsv.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Resource Include="Resources\adddatarow.png" />
+    <Resource Include="Resources\builddatatable.png" />
+    <Resource Include="Resources\extractdatatable.png" />
+    <Resource Include="Resources\filterdatatable.png" />
+    <Resource Include="Resources\getrowitem.png" />
+    <Resource Include="Resources\joindatatable.png" />
+    <Resource Include="Resources\mergedatatable.png" />
+    <Resource Include="Resources\outputdatatable.png" />
+    <Resource Include="Resources\readcsv.png" />
+    <Resource Include="Resources\removeduplicaterows.png" />
+    <Resource Include="Resources\sortdatatable.png" />
+    <Resource Include="Resources\writecsv.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

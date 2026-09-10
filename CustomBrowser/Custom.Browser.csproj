@@ -32,6 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Versi HARUS sama persis dengan yang dipakai Custom.StudioBridge
+         (13.0.4): project gaya lama tidak menerima paket transitif, dan versi
+         berbeda membuat JObject dianggap dua tipe yang berlainan. -->
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities" />
     <Reference Include="System.Activities.Presentation" />
@@ -42,6 +48,7 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
@@ -56,6 +63,47 @@
     </Compile>
     <Compile Include="Activities\OpenBrowser.cs" />
     <Compile Include="Activities\OpenBrowserDesigner.xaml.cs" />
+    <Compile Include="Activities\NavigateUrl.cs" />
+    <Compile Include="Activities\NavigateUrlDesigner.xaml.cs">
+      <DependentUpon>NavigateUrlDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GoBack.cs" />
+    <Compile Include="Activities\GoBackDesigner.xaml.cs">
+      <DependentUpon>GoBackDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GoForward.cs" />
+    <Compile Include="Activities\GoForwardDesigner.xaml.cs">
+      <DependentUpon>GoForwardDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\RefreshPage.cs" />
+    <Compile Include="Activities\RefreshPageDesigner.xaml.cs">
+      <DependentUpon>RefreshPageDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\ElementActivityBase.cs" />
+    <Compile Include="Activities\ElementExists.cs" />
+    <Compile Include="Activities\ElementExistsDesigner.xaml.cs">
+      <DependentUpon>ElementExistsDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\WaitElementVanish.cs" />
+    <Compile Include="Activities\WaitElementVanishDesigner.xaml.cs">
+      <DependentUpon>WaitElementVanishDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GetAttribute.cs" />
+    <Compile Include="Activities\GetAttributeDesigner.xaml.cs">
+      <DependentUpon>GetAttributeDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\SelectItem.cs" />
+    <Compile Include="Activities\SelectItemDesigner.xaml.cs">
+      <DependentUpon>SelectItemDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\CheckElement.cs" />
+    <Compile Include="Activities\CheckElementDesigner.xaml.cs">
+      <DependentUpon>CheckElementDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\TakeScreenshot.cs" />
+    <Compile Include="Activities\TakeScreenshotDesigner.xaml.cs">
+      <DependentUpon>TakeScreenshotDesigner.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -73,12 +121,18 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="Activities\README.md" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <!-- Tombol pemilih berkas/folder pada kartu activity (PathDesignerBase). -->
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj">
       <Project>{5aaa6277-bdc9-4b24-950b-eb7a43ab948a}</Project>
       <Name>OpenRPA.Interfaces</Name>
@@ -87,8 +141,56 @@
       <Project>{6acba332-838a-4bad-abae-b50bcb069879}</Project>
       <Name>OpenRPA.NM</Name>
     </ProjectReference>
+    <!-- Dipakai activity elemen (Element Exists, Get Attribute, Select Item,
+         Check/Uncheck, Take Screenshot): jalur web lewat StudioPipeClient,
+         jalur desktop lewat DesktopActions, dan tombol Indicate lewat
+         IndicateHelper — semuanya yang SUDAH ADA di sana, bukan salinan. -->
+    <ProjectReference Include="..\Custom.StudioBridge\Custom.StudioBridge.csproj">
+      <Project>{0aed96b8-b1f5-42cc-b54e-adf20e15772a}</Project>
+      <Name>Custom.StudioBridge</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Activities\TakeScreenshotDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\CheckElementDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\SelectItemDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GetAttributeDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WaitElementVanishDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\ElementExistsDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\RefreshPageDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GoForwardDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GoBackDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\NavigateUrlDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Activities\AttachBrowserDesigner.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -97,6 +199,63 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Resources\ResFinder.cs" />
+    <EmbeddedResource Include="Resources\attachbrowser.png">
+      <LogicalName>Custom.Browser.Resources.attachbrowser.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\checkelement.png">
+      <LogicalName>Custom.Browser.Resources.checkelement.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\elementexists.png">
+      <LogicalName>Custom.Browser.Resources.elementexists.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\getattribute.png">
+      <LogicalName>Custom.Browser.Resources.getattribute.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\goback.png">
+      <LogicalName>Custom.Browser.Resources.goback.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\goforward.png">
+      <LogicalName>Custom.Browser.Resources.goforward.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\navigateurl.png">
+      <LogicalName>Custom.Browser.Resources.navigateurl.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\openbrowser.png">
+      <LogicalName>Custom.Browser.Resources.openbrowser.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\refreshpage.png">
+      <LogicalName>Custom.Browser.Resources.refreshpage.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\selectitem.png">
+      <LogicalName>Custom.Browser.Resources.selectitem.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\takescreenshot.png">
+      <LogicalName>Custom.Browser.Resources.takescreenshot.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\waitelementvanish.png">
+      <LogicalName>Custom.Browser.Resources.waitelementvanish.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Resource Include="Resources\attachbrowser.png" />
+    <Resource Include="Resources\checkelement.png" />
+    <Resource Include="Resources\elementexists.png" />
+    <Resource Include="Resources\getattribute.png" />
+    <Resource Include="Resources\goback.png" />
+    <Resource Include="Resources\goforward.png" />
+    <Resource Include="Resources\navigateurl.png" />
+    <Resource Include="Resources\openbrowser.png" />
+    <Resource Include="Resources\refreshpage.png" />
+    <Resource Include="Resources\selectitem.png" />
+    <Resource Include="Resources\takescreenshot.png" />
+    <Resource Include="Resources\waitelementvanish.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -175,7 +175,7 @@ namespace OpenRPA.Views
 
                         // per project or joined ?
                         // string TargetFolder = System.IO.Path.Combine(project.Path, "extensions");
-                        string TargetFolder = System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "extensions");
+                        string TargetFolder = System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "extensions");
 
                         BusyContent = "Uninstalling " + _identity.ToString();
                         NuGetPackageManager.Instance.UninstallPackage(TargetFolder, _identity);
@@ -242,7 +242,7 @@ namespace OpenRPA.Views
                     }                    
                     // per project or joined ?
                     // string TargetFolder = System.IO.Path.Combine(project.Path, "extensions");
-                    string TargetFolder = System.IO.Path.Combine(Interfaces.Extensions.ProjectsDirectory, "extensions");
+                    string TargetFolder = System.IO.Path.Combine(Interfaces.Extensions.DataDirectory, "extensions");
 
                     BusyContent = "Uninstalling package";
                     NuGetPackageManager.Instance.UninstallPackage(TargetFolder, identity);

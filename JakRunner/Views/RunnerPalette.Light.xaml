@@ -1,0 +1,31 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Palet TERANG. Warnanya dipisahkan dari gayanya supaya bisa ditukar
+        dengan palet gelap tanpa menyentuh satu pun gaya.
+
+        Kuncinya harus SAMA PERSIS dengan palet gelap. Kunci yang cuma ada di
+        satu palet akan hilang begitu paletnya ditukar, dan yang terlihat orang
+        bukan warna yang salah melainkan kotak kosong.
+    -->
+
+    <SolidColorBrush x:Key="Runner.Bg"        Color="#EDE7DC" />
+    <SolidColorBrush x:Key="Runner.Surface"   Color="#FAF6EF" />
+    <SolidColorBrush x:Key="Runner.Card"      Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Runner.Sidebar"   Color="#F3EDE2" />
+    <SolidColorBrush x:Key="Runner.Border"    Color="#DFD5C4" />
+    <SolidColorBrush x:Key="Runner.Text"      Color="#3A2E22" />
+    <SolidColorBrush x:Key="Runner.Muted"     Color="#8A7A66" />
+    <SolidColorBrush x:Key="Runner.Brown"     Color="#4A3A2A" />
+    <SolidColorBrush x:Key="Runner.Accent"    Color="#E8DECB" />
+
+    <SolidColorBrush x:Key="Runner.Green"     Color="#2E9E5B" />
+    <SolidColorBrush x:Key="Runner.GreenSoft" Color="#DFF2E5" />
+    <SolidColorBrush x:Key="Runner.Amber"     Color="#C98A16" />
+    <SolidColorBrush x:Key="Runner.AmberSoft" Color="#FBEFD5" />
+    <SolidColorBrush x:Key="Runner.Red"       Color="#C0392B" />
+    <SolidColorBrush x:Key="Runner.RedSoft"   Color="#F8E2DE" />
+    <SolidColorBrush x:Key="Runner.Blue"      Color="#2A6FDB" />
+
+</ResourceDictionary>

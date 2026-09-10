@@ -15,10 +15,10 @@ using System.Windows;
 namespace OpenRPA.Activities
 {
     [System.ComponentModel.Designer(typeof(DetectorDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.detector.png")]
     [LocalizedToolboxTooltip("activity_detector_tooltip", typeof(Resources.strings))]
     [LocalizedDisplayName("activity_detector", typeof(Resources.strings))]
     [LocalizedHelpURL("activity_detector_helpurl", typeof(Resources.strings))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_detector.png")]
     public class Detector : NativeActivity
     {
         [RequiredArgument, LocalizedDisplayName("activity_detector", typeof(Resources.strings)), LocalizedDescription("activity_detector_help", typeof(Resources.strings))]

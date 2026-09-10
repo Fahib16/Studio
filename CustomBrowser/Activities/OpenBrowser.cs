@@ -63,8 +63,16 @@ namespace Custom.Browser
     ///     activity terpisah.
     /// </summary>
     [Designer(typeof(Design.OpenBrowserDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.openbrowser.png")]
+    [DisplayName("Open Browser")]
+    [Description("Membuka browser ke sebuah alamat, lalu menjalankan activity di dalamnya.")]
     public sealed class OpenBrowser : NativeActivity, System.Activities.Presentation.IActivityTemplateFactory
     {
+        public OpenBrowser()
+        {
+            DisplayName = "Open Browser";
+        }
+
         [Category("Input")]
         [RequiredArgument]
         [DisplayName("Url")]
@@ -91,6 +99,7 @@ namespace Custom.Browser
 
         [Category("Common")]
         [DisplayName("Continue On Error")]
+        [System.ComponentModel.Editor(typeof(Custom.Shared.ContinueOnErrorEditor), typeof(System.Activities.Presentation.PropertyEditing.PropertyValueEditor))]
         public InArgument<bool> ContinueOnError { get; set; }
 
         [Category("Output")]
@@ -111,6 +120,38 @@ namespace Custom.Browser
 
             if (Body != null)
                 metadata.AddDelegate(Body);
+        }
+
+        /// <summary>
+        /// Apakah robot ini berjalan di dalam sesi anak?
+        ///
+        /// Jawabannya ada pada Plugin.client — dan yang mengisinya adalah Studio
+        /// saat menyala. Di JakRunner tidak ada yang mengisinya, sehingga
+        /// membacanya langsung melempar NullReferenceException dan seluruh
+        /// activity Open Browser gagal dengan pesan yang tidak menyebut sebabnya.
+        ///
+        /// Tanpa Studio memang tidak ada sesi anak, jadi "tidak" adalah jawaban
+        /// yang benar — bukan sekadar penambal.
+        /// </summary>
+        /// <remarks>
+        /// Sengaja TIDAK ada pemeriksaan "jembatan harus tersambung" di sini.
+        ///
+        /// Percobaan sebelumnya menambahkannya, dan itu keliru: membuka peramban
+        /// tidak memerlukan ekstensi sama sekali — yang memerlukannya hanyalah
+        /// menemukan tab yang sudah terbuka. Tanpa ekstensi, daftar tab kosong,
+        /// activity ini meluncurkan peramban seperti biasa, dan hasilnya benar.
+        /// Pemeriksaan itu justru menolak jalan yang selama ini bekerja di Studio.
+        /// </remarks>
+        private static bool InChildSession()
+        {
+            try
+            {
+                return Plugin.client != null && Plugin.client.isRunningInChildSession;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         protected override void Execute(NativeActivityContext context)
@@ -151,7 +192,7 @@ namespace Custom.Browser
 
                     if (userDataFolderMode == "automatic")
                     {
-                        if (Plugin.client.isRunningInChildSession)
+                        if (InChildSession())
                         {
                             profilepath = userDataFolderPath;
                             if (string.IsNullOrEmpty(profilepath))
@@ -166,7 +207,7 @@ namespace Custom.Browser
                         profilepath = userDataFolderPath;
                         if (string.IsNullOrEmpty(profilepath))
                         {
-                            if (Plugin.client.isRunningInChildSession)
+                            if (InChildSession())
                             {
                                 profilepath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\openrpa\\ChildSession\\" + browser;
                                 profilename = "ChildSession";
@@ -180,7 +221,25 @@ namespace Custom.Browser
                     }
                     // "defaultfolder" -> profilepath/profilename dibiarkan kosong (pakai folder default browser)
 
-                    NMHook.openurl(browser, url, newtab, profilename, profilepath);
+                    if (NMHook.connected)
+                    {
+                        NMHook.openurl(browser, url, newtab, profilename, profilepath);
+                    }
+                    else
+                    {
+                        // NMHook.openurl menunggu SAMPAI 20 DETIK agar addon
+                        // OpenRPA lama menyambung — dan pada pemasangan JakForge
+                        // addon itu tidak dipakai sama sekali, sehingga
+                        // penantiannya selalu habis sia-sia. Dua puluh detik itu
+                        // muncul di setiap Open Browser, sebelum satu pun langkah
+                        // berikutnya dikerjakan.
+                        //
+                        // Jadi perambannya diluncurkan langsung, lalu yang
+                        // ditunggu adalah tanda kesiapan yang BENAR-BENAR dipakai
+                        // activity sesudahnya: jembatan JakForge melihat tabnya.
+                        LaunchBrowser(browser, url, profilepath);
+                        WaitForPage(url);
+                    }
                 }
                 // ----- Akhir bagian yang disalin dari OpenURL.cs -----
 
@@ -197,6 +256,84 @@ namespace Custom.Browser
             {
                 // Telan error kalau ContinueOnError = true, sama seperti activity lain yang sudah kita buat
             }
+        }
+
+        /// <summary>
+        /// Luncurkan peramban pada sebuah alamat.
+        ///
+        /// Sama persis dengan yang dilakukan NMHook.openurl pada cabang "addon
+        /// tidak tersambung", tanpa penantian dua puluh detik sesudahnya.
+        /// </summary>
+        private static void LaunchBrowser(string browser, string url, string profilepath)
+        {
+            var exe =
+                browser == "edge" ? "msedge.exe" :
+                browser == "ff" ? "firefox.exe" :
+                "chrome.exe";
+
+            var arguments = string.IsNullOrEmpty(profilepath)
+                ? "\"" + url + "\""
+                : "--user-data-dir=\"" + profilepath + "\" \"" + url + "\"";
+
+            System.Diagnostics.Process.Start(exe, arguments);
+        }
+
+        /// <summary>
+        /// Tunggu sampai jembatan JakForge benar-benar melihat halamannya.
+        ///
+        /// Inilah tanda kesiapan yang tepat: activity berikutnya — Click, Type
+        /// Into — bekerja lewat jembatan yang sama, jadi begitu jembatan itu
+        /// melihat tabnya, langkah berikutnya pasti bisa dikerjakan. Menunggu
+        /// selang waktu tetap hanya bisa dua-duanya salah: kelamaan saat
+        /// perambannya cepat, dan tetap kurang saat halamannya berat.
+        ///
+        /// Kalau jembatannya sendiri tidak menjawab, penantian berhenti setelah
+        /// beberapa detik dan pekerjaan diteruskan: activity berikutnya yang
+        /// akan melapor dengan pesannya sendiri, dan itu lebih jelas daripada
+        /// menggantung di sini.
+        /// </summary>
+        private static void WaitForPage(string url)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(30);
+            var host = HostOf(url);
+
+            var bridgeSilentUntil = DateTime.UtcNow.AddSeconds(5);
+
+            while (DateTime.UtcNow < deadline)
+            {
+                try
+                {
+                    var tabs = Custom.StudioBridge.StudioPipeClient.SendCommand(
+                        "listTabs", null, 1500, 4000) as Newtonsoft.Json.Linq.JArray;
+
+                    if (tabs != null)
+                    {
+                        bridgeSilentUntil = DateTime.MaxValue;
+
+                        foreach (var tab in tabs)
+                        {
+                            var tabUrl = (string)tab["url"];
+                            if (string.IsNullOrEmpty(tabUrl)) continue;
+
+                            if (string.IsNullOrEmpty(host) || HostOf(tabUrl) == host) return;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Jembatan belum menjawab. Wajar pada detik-detik pertama:
+                    // perambannya baru saja diluncurkan.
+                    if (DateTime.UtcNow > bridgeSilentUntil) return;
+                }
+
+                System.Threading.Thread.Sleep(250);
+            }
+        }
+
+        private static string HostOf(string url)
+        {
+            try { return new Uri(url).Host.ToLowerInvariant(); }
+            catch (Exception) { return null; }
         }
 
         private static NativeMessagingMessageTab ResolveCurrentTab(string browser)
@@ -252,7 +389,13 @@ namespace Custom.Browser
             var da = new DelegateInArgument<NativeMessagingMessageTab> { Name = "browser" };
             fef.Body = new ActivityAction<NativeMessagingMessageTab>
             {
-                Argument = da
+                Argument = da,
+
+                // Do diisi Sequence sejak awal, seperti Open Browser milik
+                // UiPath. Tanpa ini kotak Do hanya memuat SATU activity, dan
+                // begitu langkah kedua dibutuhkan user harus membongkar dulu
+                // isinya untuk menyisipkan Sequence sendiri.
+                Handler = new System.Activities.Statements.Sequence { DisplayName = "Do" }
             };
             return fef;
         }

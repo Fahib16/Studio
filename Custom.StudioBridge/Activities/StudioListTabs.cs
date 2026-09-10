@@ -28,10 +28,19 @@ namespace Custom.StudioBridge
     /// terbuka lewat extension kita sendiri.
     /// </summary>
     [Designer(typeof(Design.StudioListTabsDesigner), typeof(System.ComponentModel.Design.IDesigner))]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.listtabs.png")]
+    [DisplayName("List Tabs")]
+    [Description("Mengambil daftar tab Chrome yang sedang terbuka.")]
     public class StudioListTabs : CodeActivity
     {
+        public StudioListTabs()
+        {
+            DisplayName = "List Tabs";
+        }
+
         [Category("Common")]
         [DisplayName("Continue On Error")]
+        [System.ComponentModel.Editor(typeof(Custom.Shared.ContinueOnErrorEditor), typeof(System.Activities.Presentation.PropertyEditing.PropertyValueEditor))]
         public InArgument<bool> ContinueOnError { get; set; }
 
         [Category("Output")]

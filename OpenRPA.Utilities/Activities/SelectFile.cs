@@ -15,8 +15,8 @@ using ExcelDataReader;
 namespace OpenRPA.Utilities
 {
     [Designer(typeof(SelectFileDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.selectfile.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_selectfile.png")]
     public class SelectFile : CodeActivity
     {
         [Category("Input")]

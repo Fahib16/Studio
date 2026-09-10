@@ -197,7 +197,31 @@
     <EmbeddedResource Include="Resources\toolbox\downloadfile.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.95.4" />
+    <!-- Disamakan dengan OpenRPA dan Custom.Excel, yang keduanya memakai
+         0.105.1. Seluruh proyek menyalin ke SATU folder keluaran, jadi satu
+         proyek yang tertinggal versi sudah cukup untuk menjatuhkan yang lain.
+         rakitan 0.95.4.0 yang mendarat membuat activity yang dikompilasi
+         terhadap 0.105.1.0 gagal dengan "manifest definition does not match".
+         Penyakit yang sama pernah terjadi pada Newtonsoft.Json dan
+         System.ValueTuple. -->
+    <!-- Wajib disebut EKSPLISIT, walau kodenya sendiri tidak memakai tuple.
+         Proyek .NET Framework yang memakai pustaka netstandard2.0 dilengkapi
+         MSBuild dengan shim System.ValueTuple 4.0.2.0 dari
+         Microsoft.NET.Build.Extensions. Seluruh proyek menyalin ke SATU folder
+         keluaran, jadi proyek yang membangun TERAKHIR menentukan versi yang
+         mendarat, dan shim itu menimpa 4.0.3.0 yang diminta OpenRPA, membuat
+         pemuatan gagal dengan "manifest definition does not match".
+         Menyebut paketnya secara eksplisit membuat proyek ini menyalin 4.0.3.0
+         juga, sehingga siapa pun yang terakhir hasilnya sama. -->
+    <!-- Disamakan dengan OpenRPA (6.0.0) dan dengan pengalihan versi di berkas
+         config, yang memang menunjuk 6.0.0.0. Tanpa penyebutan eksplisit,
+         proyek ini menarik versi lama secara transitif; karena seluruh proyek
+         menyalin ke SATU folder keluaran, proyek yang membangun terakhir
+         menentukan versi yang mendarat. Sebelas rakitan meminta 6.0.0.0,
+         termasuk Roslyn, jadi versi lama yang mendarat adalah ranjau. -->
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.6.0" />
     <PackageReference Include="iTextSharp" Version="5.5.13.2" />
   </ItemGroup>
@@ -340,4 +364,78 @@
   <Target Name="PostBuild" AfterTargets="Pack" Condition="'$(Configuration)' == 'PrepInstaller'">
     <Exec Command="copy $(OutputPath)..\$(PackageId).$(PackageVersion).nupkg C:\code\OpenRPA\packages" />
   </Target>
+  <ItemGroup>
+    <None Remove="Resources\jf_adddatacolumn.png" />
+    <EmbeddedResource Include="Resources\jf_adddatacolumn.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_adddatacolumn.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_deleteallrows.png" />
+    <EmbeddedResource Include="Resources\jf_deleteallrows.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_deleteallrows.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_deleterow.png" />
+    <EmbeddedResource Include="Resources\jf_deleterow.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_deleterow.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_downloadfile.png" />
+    <EmbeddedResource Include="Resources\jf_downloadfile.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_downloadfile.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_getcredentials.png" />
+    <EmbeddedResource Include="Resources\jf_getcredentials.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_getcredentials.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_jarraytodatatable.png" />
+    <EmbeddedResource Include="Resources\jf_jarraytodatatable.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_jarraytodatatable.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_killprocess.png" />
+    <EmbeddedResource Include="Resources\jf_killprocess.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_killprocess.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_match.png" />
+    <EmbeddedResource Include="Resources\jf_match.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_match.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_matches.png" />
+    <EmbeddedResource Include="Resources\jf_matches.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_matches.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_readjson.png" />
+    <EmbeddedResource Include="Resources\jf_readjson.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_readjson.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_readpdf.png" />
+    <EmbeddedResource Include="Resources\jf_readpdf.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_readpdf.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_replace.png" />
+    <EmbeddedResource Include="Resources\jf_replace.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_replace.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_selectfile.png" />
+    <EmbeddedResource Include="Resources\jf_selectfile.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_selectfile.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_selectfolder.png" />
+    <EmbeddedResource Include="Resources\jf_selectfolder.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_selectfolder.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_setallrowsstate.png" />
+    <EmbeddedResource Include="Resources\jf_setallrowsstate.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_setallrowsstate.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_setautologin.png" />
+    <EmbeddedResource Include="Resources\jf_setautologin.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_setautologin.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_setcredentials.png" />
+    <EmbeddedResource Include="Resources\jf_setcredentials.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_setcredentials.png</LogicalName>
+    </EmbeddedResource>
+    <None Remove="Resources\jf_startprocess.png" />
+    <EmbeddedResource Include="Resources\jf_startprocess.png">
+      <LogicalName>OpenRPA.Utilities.Resources.jf_startprocess.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

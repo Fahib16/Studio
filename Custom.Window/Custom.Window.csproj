@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E5DDACF8-6757-43CD-B3A3-76F5251F7E39}</ProjectGuid>
+    <OutputType>library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Custom.Window</RootNamespace>
+    <AssemblyName>Custom.Window</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <!-- WPF project type guid WAJIB ada; tanpa ini XAML ActivityDesigner tidak
+         ikut dikompilasi dan tag sap:ActivityDesigner dianggap tidak dikenal. -->
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Dibutuhkan karena DesktopActions.WaitFor mengembalikan
+         FlaUI AutomationElement; versinya harus sama persis dengan yang
+         dipakai Custom.StudioBridge (3.2.0). -->
+    <Reference Include="FlaUI.Core, Version=3.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FlaUI.Core.3.2.0\lib\net45\FlaUI.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.Activities.Presentation" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Activities\WindowFinder.cs" />
+    <Compile Include="Activities\WindowActivityBase.cs" />
+    <Compile Include="Activities\MaximizeWindow.cs" />
+    <Compile Include="Activities\MaximizeWindowDesigner.xaml.cs">
+      <DependentUpon>MaximizeWindowDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\MinimizeWindow.cs" />
+    <Compile Include="Activities\MinimizeWindowDesigner.xaml.cs">
+      <DependentUpon>MinimizeWindowDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\RestoreWindow.cs" />
+    <Compile Include="Activities\RestoreWindowDesigner.xaml.cs">
+      <DependentUpon>RestoreWindowDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\CloseWindow.cs" />
+    <Compile Include="Activities\CloseWindowDesigner.xaml.cs">
+      <DependentUpon>CloseWindowDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\GetActiveWindow.cs" />
+    <Compile Include="Activities\GetActiveWindowDesigner.xaml.cs">
+      <DependentUpon>GetActiveWindowDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\WaitForWindow.cs" />
+    <Compile Include="Activities\WaitForWindowDesigner.xaml.cs">
+      <DependentUpon>WaitForWindowDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Activities\SetWindowBounds.cs" />
+    <Compile Include="Activities\SetWindowBoundsDesigner.xaml.cs">
+      <DependentUpon>SetWindowBoundsDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="Activities\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Activities\SetWindowBoundsDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\WaitForWindowDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\GetActiveWindowDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\CloseWindowDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\RestoreWindowDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\MinimizeWindowDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Activities\MaximizeWindowDesigner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Tombol pemilih berkas/folder pada kartu activity (PathDesignerBase). -->
+    <!-- Selector Studio (Indicate + resolver desktop) dipakai untuk menunjuk jendela. -->
+    <ProjectReference Include="..\Custom.StudioBridge\Custom.StudioBridge.csproj">
+      <Project>{0aed96b8-b1f5-42cc-b54e-adf20e15772a}</Project>
+      <Name>Custom.StudioBridge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Custom.Shared\Custom.Shared.csproj">
+      <Project>{1ac0e45f-2a6c-4769-9382-ae8d8f6f59ed}</Project>
+      <Name>Custom.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenRPA.Interfaces\OpenRPA.Interfaces.csproj">
+      <Project>{5aaa6277-bdc9-4b24-950b-eb7a43ab948a}</Project>
+      <Name>OpenRPA.Interfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Resources\ResFinder.cs" />
+    <EmbeddedResource Include="Resources\closewindow.png">
+      <LogicalName>Custom.Window.Resources.closewindow.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\getactivewindow.png">
+      <LogicalName>Custom.Window.Resources.getactivewindow.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\maximizewindow.png">
+      <LogicalName>Custom.Window.Resources.maximizewindow.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\minimizewindow.png">
+      <LogicalName>Custom.Window.Resources.minimizewindow.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\restorewindow.png">
+      <LogicalName>Custom.Window.Resources.restorewindow.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\setwindowbounds.png">
+      <LogicalName>Custom.Window.Resources.setwindowbounds.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\waitforwindow.png">
+      <LogicalName>Custom.Window.Resources.waitforwindow.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources\JakForgeCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Resource Include="Resources\closewindow.png" />
+    <Resource Include="Resources\getactivewindow.png" />
+    <Resource Include="Resources\maximizewindow.png" />
+    <Resource Include="Resources\minimizewindow.png" />
+    <Resource Include="Resources\restorewindow.png" />
+    <Resource Include="Resources\setwindowbounds.png" />
+    <Resource Include="Resources\waitforwindow.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

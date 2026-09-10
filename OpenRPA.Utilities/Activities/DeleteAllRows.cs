@@ -19,8 +19,8 @@ using System.Windows;
 namespace OpenRPA.Utilities
 {
     [Designer(typeof(DeleteAllRowsDesigner), typeof(System.ComponentModel.Design.IDesigner))]
-    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.toolbox.deleteallrows.png")]
     //[designer.ToolboxTooltip(Text = "Find an Windows UI element based on xpath selector")]
+    [System.Drawing.ToolboxBitmap(typeof(ResFinder), "Resources.jf_deleteallrows.png")]
     public class DeleteAllRows : CodeActivity
     {
         [RequiredArgument]

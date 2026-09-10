@@ -1,6 +1,7 @@
 ﻿using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using ICSharpCode.AvalonEdit.Document;
+using ICSharpCode.AvalonEdit.Editing;
 using ICSharpCode.AvalonEdit.Search;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -90,6 +91,11 @@ namespace OpenRPA.CodeEditor
             Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/OpenRPA.CodeEditor;component/Resources/CodeEditorResources.xaml") });
 
             completionCancellation = new CancellationTokenSource();
+            // Kurung dan kutip yang menutup sendiri. Dipasang SEBELUM handler
+            // completion, supaya karakter yang sudah ditanganinya tidak ikut
+            // disisipkan dua kali.
+            AutoPair.Attach(TextArea);
+
             TextArea.TextEntering += TextAreaTextEntering;
             TextArea.TextEntered += TextAreaTextEntered;
             IsVisibleChanged += IsVisibleChangedHandler;
